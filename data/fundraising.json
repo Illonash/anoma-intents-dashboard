@@ -22,5 +22,37 @@
     "date": "2025-07-30",
     "investors": ["Union Build"],
     "tags": ["DeFi"]
+  },
+  {
+    "project": "Lattice Labs",
+    "round": "Series B",
+    "amount": "$40M",
+    "date": "2025-07-15",
+    "investors": ["Paradigm", "Multicoin"],
+    "tags": ["ZK", "Modular"]
+  },
+  {
+    "project": "Orbit Finance",
+    "round": "Seed",
+    "amount": "$12M",
+    "date": "2025-06-22",
+    "investors": ["Coinbase Ventures"],
+    "tags": ["DeFi", "Stablecoin"]
+  },
+  {
+    "project": "ZeroCompute",
+    "round": "Series A",
+    "amount": "$18M",
+    "date": "2025-06-10",
+    "investors": ["Cysic", "Boundless"],
+    "tags": ["ZK", "AI"]
+  },
+  {
+    "project": "WavePay",
+    "round": "Series C",
+    "amount": "$65M",
+    "date": "2025-05-18",
+    "investors": ["Softbank", "Temasek"],
+    "tags": ["Payments", "RWA"]
   }
 ]
