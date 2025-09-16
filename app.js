@@ -29,12 +29,15 @@ const fundraisingList = document.getElementById("fundraisingList");
 const loginBtn = document.getElementById("loginBtn");
 const openPaletteBtn = document.getElementById("openPaletteBtn");
 
-// Palette
+// Palette DOM
 const intentOverlay = document.getElementById("intentOverlay");
 const intentInput   = document.getElementById("intentInput");
 const intentPreview = document.getElementById("intentPreview");
 const intentApply   = document.getElementById("intentApply");
 const intentClose   = document.getElementById("intentClose");
+
+// Utility: safe listener (menghindari error jika elemen null)
+function safeOn(el, ev, fn){ if (el) el.addEventListener(ev, fn); }
 
 // Tabs
 document.getElementById("tabs").addEventListener("click", (e) => {
@@ -48,15 +51,29 @@ document.getElementById("tabs").addEventListener("click", (e) => {
 });
 
 // Demo login
-loginBtn.addEventListener("click", () => alert("Demo mode — login disabled."));
+safeOn(loginBtn, "click", () => alert("Demo mode — login disabled."));
 
-// Palette controls
-openPaletteBtn.addEventListener("click", () => openPalette(""));
+// ---- Command Palette ----
+function openPalette(seed=""){
+  if (!intentOverlay || !intentInput) return;
+  intentOverlay.classList.remove("hidden");
+  intentInput.value = seed;
+  intentInput.focus();
+  renderIntentPreview();
+}
+function closePalette(){
+  if (!intentOverlay) return;
+  intentOverlay.classList.add("hidden");
+  lastIntent = null;
+}
+safeOn(openPaletteBtn, "click", () => openPalette(""));
 document.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); openPalette(""); }
   if (e.key==="Escape" && !intentOverlay.classList.contains("hidden")) closePalette();
 });
-intentClose.addEventListener("click", closePalette);
+safeOn(intentClose, "click", closePalette);
+// klik area gelap di luar card untuk menutup
+safeOn(intentOverlay, "click", (e)=>{ if (e.target === intentOverlay) closePalette(); });
 
 // Spotlight chips
 function renderChips() {
@@ -67,26 +84,24 @@ function renderChips() {
     btn.textContent = tag;
     btn.addEventListener("click", () => {
       activeChip = activeChip === tag ? null : tag;
-      renderChips();
-      renderCrypto();
-      renderFundraising();
+      renderChips(); renderCrypto(); renderFundraising();
     });
     chipsWrap.appendChild(btn);
   });
 }
 
 // Search
-globalSearch.addEventListener("input", (e) => {
+safeOn(globalSearch, "input", (e) => {
   query = e.target.value.trim().toLowerCase();
   renderCrypto(); renderFundraising();
 });
 
 // Sorting + watchlist
-sortSelect.addEventListener("change", (e) => {
+safeOn(sortSelect, "change", (e) => {
   const [key, dir] = e.target.value.split(":");
   sortKey = key; sortDir = dir; renderCrypto();
 });
-onlyWatchlistCb.addEventListener("change", (e) => {
+safeOn(onlyWatchlistCb, "change", (e) => {
   onlyWatchlist = e.target.checked; renderCrypto();
 });
 
@@ -165,16 +180,16 @@ function applyIntent(intent){
   }
 }
 
-// Palette helpers
-function openPalette(seed=""){ intentOverlay.classList.remove("hidden"); intentInput.value = seed; intentInput.focus(); renderIntentPreview(); }
-function closePalette(){ intentOverlay.classList.add("hidden"); lastIntent = null; }
+// Preview & Apply (palette)
 function renderIntentPreview(){
-  const i = parseIntent(intentInput.value);
-  intentPreview.textContent = i ? ("parsed: " + JSON.stringify(i)) : "intent tidak dikenali. contoh: swap 100 usdc → xan";
+  const i = parseIntent(intentInput?.value || "");
+  if (!intentPreview) return;
+  intentPreview.textContent = i ? ("parsed: " + JSON.stringify(i))
+                                : "intent tidak dikenali. contoh: swap 100 usdc → xan";
 }
-intentInput.addEventListener("input", renderIntentPreview);
-intentApply.addEventListener("click", ()=>{ const i = parseIntent(intentInput.value); applyIntent(i); closePalette(); });
-intentInput.addEventListener("keydown",(e)=>{ if (e.key==="Enter"){ e.preventDefault(); intentApply.click(); } });
+safeOn(intentInput, "input", renderIntentPreview);
+safeOn(intentApply, "click", ()=>{ const i = parseIntent(intentInput?.value || ""); applyIntent(i); closePalette(); });
+safeOn(intentInput, "keydown", (e)=>{ if (e.key==="Enter"){ e.preventDefault(); intentApply?.click(); } });
 
 // ---- Renderers ----
 function renderCrypto(){
