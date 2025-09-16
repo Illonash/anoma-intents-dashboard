@@ -29,9 +29,8 @@
     <button class="tab" data-tab="fundraising">Fundraising</button>
   </nav>
 
-  <!-- Content -->
   <main>
-    <!-- Crypto table -->
+    <!-- ===== LIST VIEW: CRYPTO ===== -->
     <section id="cryptoSection">
       <div class="toolbar">
         <div class="left">
@@ -76,43 +75,64 @@
         <div id="cryptoEmpty" class="empty hidden">No results found.</div>
       </div>
 
-      <!-- NOTE / disclaimer pindah ke bawah tabel, pojok kiri -->
-      <div class="note">Demo only — data is simulated for the Anoma intents dashboard.</div>
+      <!-- NOTE / disclaimer bawah tabel kiri -->
+      <div class="note">note: demo only, data is simulated for the Anoma intents dashboard.</div>
     </section>
 
-    <!-- Fundraising list -->
+    <!-- ===== LIST VIEW: FUNDRAISING ===== -->
     <section id="fundraisingSection" class="hidden">
       <ul id="fundraisingList" class="fund-list"></ul>
       <div id="fundraisingEmpty" class="empty hidden">No results found.</div>
     </section>
+
+    <!-- ===== DETAIL VIEW (klik coin) ===== -->
+    <section id="assetDetail" class="detail hidden">
+      <div class="detail-header">
+        <button id="detailBack" class="ghost">← Back</button>
+        <h2 id="detailTitle">Asset</h2>
+      </div>
+
+      <div class="detail-grid">
+        <div class="detail-chart">
+          <iframe id="tvFrame" style="width:100%;height:420px;border:1px solid #222;border-radius:12px"
+                  src="" loading="lazy"></iframe>
+        </div>
+
+        <aside class="detail-side">
+          <div class="tabs-mini">
+            <button class="mini active" data-pane="news">News</button>
+            <button class="mini" data-pane="opinion">Opinion</button>
+            <button class="mini" data-pane="research">Research</button>
+          </div>
+          <div id="paneNews" class="pane"></div>
+          <div id="paneOpinion" class="pane hidden"></div>
+          <div id="paneResearch" class="pane hidden"></div>
+
+          <div class="swap-card">
+            <div class="swap-title">Swap (demo)</div>
+            <div class="swap-row">
+              <label>Amount <input id="dSwapAmount" type="number" value="100" min="0"></label>
+              <span id="dSwapFrom">—</span> <span>→</span> <span>XAN</span>
+              <button id="dSwapSim" class="ghost">Simulate</button>
+            </div>
+            <div id="dSwapResult" class="swap-result">—</div>
+          </div>
+        </aside>
+      </div>
+    </section>
   </main>
 
-  <!-- Footer (identitas builder & powered by) -->
+  <!-- Footer: X logo besar + powered by illonashanum -->
   <footer class="footer">
-    <small>
-      Built by <a class="brand-link" href="https://twitter.com/illonashanum" target="_blank" rel="noopener">
-        illonashanum<span class="x-badge">X</span>
-      </a>
-      &nbsp;•&nbsp; Powered by
-      <a class="brand-link" href="https://anoma.net/" target="_blank" rel="noopener">Anoma</a>
-    </small>
-  </footer>
-
-  <!-- Coin Modal -->
-  <div id="coinModal" class="modal-backdrop">
-    <div class="modal">
-      <div class="modal-header">
-        <div id="coinModalTitle"><strong>Asset</strong></div>
-        <button id="coinModalClose" class="modal-close">Close</button>
-      </div>
-      <div class="modal-body">
-        <div id="coinModalMeta"></div>
-        <div id="coinModalChart"></div>
-        <div id="coinModalNews"></div>
-        <div id="coinModalSwap"></div>
+    <div class="footer-pro">
+      <img src="assets/x-logo.svg" alt="X" class="x-large" />
+      <div class="powered-line">
+        <span class="powered">powered by</span>
+        <a class="owner" href="https://twitter.com/illonashanum" target="_blank" rel="noopener">illonashanum</a>
       </div>
     </div>
-  </div>
+    <small class="tagline">Stay with intent. Stay with Anoma.</small>
+  </footer>
 
   <script src="app.js"></script>
 </body>
