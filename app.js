@@ -1,9 +1,9 @@
 // ---- Config ----
 const SPOTLIGHT_TAGS = ["Anoma", "ZK", "Modular", "AI", "RWA", "DeFi", "Meme"];
 const DATA = {
-  assets: "data/assets.json",
-  fundraising: "data/fundraising.json",
-  sectors: "data/sectors.json"
+  assets: "./data/assets.json",
+  fundraising: "./data/fundraising.json",
+  sectors: "./data/sectors.json"
 };
 const LS_WATCHLIST_KEY = "anoma_demo_watchlist";
 
