@@ -1,17 +1,17 @@
-// ---- Config ----
+// ==== Config ====
 const SPOTLIGHT_TAGS = ["Anoma","ZK","Modular","AI","RWA","DeFi","Meme"];
 const DATA = { assets:"data/assets.json", fundraising:"data/fundraising.json" };
 const LS_WATCHLIST_KEY = "anoma_demo_watchlist";
 const THEME_KEY = "anoma_theme";
 
-// ---- State ----
+// ==== State ====
 let assets=[], fundraising=[];
 let activeTab="crypto", query="", activeChip=null;
 let sortKey="marketCap", sortDir="desc", onlyWatchlist=false;
-let page=1, pageSize=10; // pagination
+let page=1, pageSize=10;
 let watchlist=new Set(JSON.parse(localStorage.getItem(LS_WATCHLIST_KEY)||"[]"));
 
-// ---- DOM ----
+// ==== DOM ====
 const globalSearch=document.getElementById("globalSearch");
 const chipsWrap=document.getElementById("spotlightChips");
 const cryptoThead=document.getElementById("cryptoThead");
@@ -26,7 +26,7 @@ const themeToggle=document.getElementById("themeToggle");
 const btnTopGainers=document.getElementById("btnTopGainers");
 const btnTopLosers=document.getElementById("btnTopLosers");
 
-// pager DOM
+// pager
 const pageSizeSel=document.getElementById("pageSize");
 const firstPageBtn=document.getElementById("firstPage");
 const prevPageBtn=document.getElementById("prevPage");
@@ -34,7 +34,7 @@ const nextPageBtn=document.getElementById("nextPage");
 const lastPageBtn=document.getElementById("lastPage");
 const pageInfo=document.getElementById("pageInfo");
 
-// Detail view refs
+// detail
 const assetDetail=document.getElementById("assetDetail");
 const detailBack=document.getElementById("detailBack");
 const detailTitle=document.getElementById("detailTitle");
@@ -47,7 +47,7 @@ const swapBtn=document.getElementById("dSwapSim");
 const swapRes=document.getElementById("dSwapResult");
 const swapFromTxt=document.getElementById("dSwapFrom");
 
-// ---- Utils ----
+// ==== Utils ====
 function formatNum(n){ if(n==null||isNaN(n))return"-";
   if(Math.abs(n)>=1e12) return (n/1e12).toFixed(2)+"T";
   if(Math.abs(n)>=1e9)  return (n/1e9).toFixed(2)+"B";
@@ -58,16 +58,16 @@ function formatNum(n){ if(n==null||isNaN(n))return"-";
 function pctClass(v){ return v>0?"up":v<0?"down":""; }
 function saveWatchlist(){ localStorage.setItem(LS_WATCHLIST_KEY, JSON.stringify([...watchlist])); }
 function applyTheme(mode){ document.documentElement.classList.toggle("light", mode==="light"); localStorage.setItem(THEME_KEY, mode); }
-function cmp(a,b){ if(a==null && b==null) return 0; if(a==null) return -1; if(b==null) return 1; return (a>b)-(a<b); }
+function cmp(a,b){ if(a==null&&b==null) return 0; if(a==null) return -1; if(b==null) return 1; return (a>b)-(a<b); }
 
-// ---- Theme init + toggle ----
-applyTheme(localStorage.getItem(THEME_KEY) || "dark");
-themeToggle?.addEventListener("click", ()=>{
+// ==== Theme init ====
+applyTheme(localStorage.getItem(THEME_KEY)||"dark");
+themeToggle?.addEventListener("click",()=>{
   const next=document.documentElement.classList.contains("light")?"dark":"light";
   applyTheme(next);
 });
 
-// ---- Tabs ----
+// ==== Tabs ====
 document.getElementById("tabs").addEventListener("click", e=>{
   const btn=e.target.closest(".tab"); if(!btn) return;
   document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
@@ -78,64 +78,79 @@ document.getElementById("tabs").addEventListener("click", e=>{
   assetDetail.classList.add("hidden");
 });
 
-// ---- Login demo ----
+// ==== Login demo ====
 loginBtn?.addEventListener("click",()=>alert("Demo mode — login disabled."));
 
-// ---- Chips ----
+// ==== Chips ====
 function renderChips(){
   chipsWrap.innerHTML="";
   SPOTLIGHT_TAGS.forEach(tag=>{
     const b=document.createElement("button");
     b.className="chip"+(activeChip===tag?" active":"");
     b.textContent=tag;
-    b.addEventListener("click",()=>{ activeChip=activeChip===tag?null:tag; page=1; renderChips(); renderCrypto(); renderFundraising(); });
+    b.addEventListener("click",()=>{
+      activeChip=activeChip===tag?null:tag;
+      page=1; renderChips(); renderCrypto(); renderFundraising();
+    });
     chipsWrap.appendChild(b);
   });
 }
 
-// ---- Search ----
-globalSearch?.addEventListener("input", e=>{ query=e.target.value.trim().toLowerCase(); page=1; renderCrypto(); renderFundraising(); });
-
-// ---- Sorting (dropdown) ----
-sortSelect?.addEventListener("change", e=>{
-  [sortKey,sortDir]=e.target.value.split(":"); page=1; syncHeaderSortIndicators(); renderCrypto();
+// ==== Search ====
+globalSearch?.addEventListener("input", e=>{
+  query=e.target.value.trim().toLowerCase();
+  page=1; renderCrypto(); renderFundraising();
 });
 
-// ---- Sorting (clickable headers) ----
+// ==== Sorting (dropdown) ====
+sortSelect?.addEventListener("change", e=>{
+  [sortKey,sortDir]=e.target.value.split(":");
+  page=1; syncHeaderSortIndicators(); renderCrypto();
+});
+
+// ==== Sorting (click header) ====
 cryptoThead?.addEventListener("click", e=>{
   const th=e.target.closest(".sortable"); if(!th) return;
   const key=th.dataset.key;
-  if(!key) return;
   if(sortKey===key){ sortDir = (sortDir==="asc"?"desc":"asc"); }
-  else { sortKey=key; sortDir = key==="name"||key==="symbol"||key==="sector" ? "asc" : "desc"; }
-  // keep dropdown roughly in sync when possible
-  const optionVal = `${sortKey}:${sortDir}`;
-  if([...sortSelect.options].some(o=>o.value===optionVal)) sortSelect.value = optionVal;
+  else { sortKey=key; sortDir = ["name","symbol","sector"].includes(key)?"asc":"desc"; }
+  const opt = `${sortKey}:${sortDir}`;
+  if([...sortSelect.options].some(o=>o.value===opt)) sortSelect.value=opt;
   page=1; syncHeaderSortIndicators(); renderCrypto();
 });
 function syncHeaderSortIndicators(){
   document.querySelectorAll("#cryptoThead .sortable").forEach(th=>{
     th.removeAttribute("data-sort");
-    if(th.dataset.key===sortKey){ th.setAttribute("data-sort", sortDir); }
+    if(th.dataset.key===sortKey) th.setAttribute("data-sort", sortDir);
   });
 }
 syncHeaderSortIndicators();
 
-// ---- Filters ----
-onlyWatchlistCb?.addEventListener("change", e=>{ onlyWatchlist=e.target.checked; page=1; renderCrypto(); });
+// ==== Filters ====
+onlyWatchlistCb?.addEventListener("change", e=>{
+  onlyWatchlist=e.target.checked; page=1; renderCrypto();
+});
 
-// ---- Quick movers ----
-btnTopGainers?.addEventListener("click", ()=>{ sortKey="change24h"; sortDir="desc"; sortSelect.value="change24h:desc"; page=1; syncHeaderSortIndicators(); renderCrypto(); });
-btnTopLosers?.addEventListener("click", ()=>{ sortKey="change24h"; sortDir="asc"; sortSelect.value="change24h:asc"; page=1; syncHeaderSortIndicators(); renderCrypto(); });
+// Quick movers
+btnTopGainers?.addEventListener("click",()=>{
+  sortKey="change24h"; sortDir="desc"; sortSelect.value="change24h:desc";
+  page=1; syncHeaderSortIndicators(); renderCrypto();
+});
+btnTopLosers?.addEventListener("click",()=>{
+  sortKey="change24h"; sortDir="asc"; sortSelect.value="change24h:asc";
+  page=1; syncHeaderSortIndicators(); renderCrypto();
+});
 
-// ---- Pager ----
-pageSizeSel?.addEventListener("change", ()=>{ pageSize = Number(pageSizeSel.value||10); page=1; renderCrypto(); });
-firstPageBtn?.addEventListener("click", ()=>{ if(page>1){ page=1; renderCrypto(); } });
-prevPageBtn?.addEventListener("click", ()=>{ if(page>1){ page--; renderCrypto(); } });
-nextPageBtn?.addEventListener("click", ()=>{ page++; renderCrypto(); });
-lastPageBtn?.addEventListener("click", ()=>{ const {totalPages}=getFilteredSortedRows(); page=totalPages; renderCrypto(); });
+// ==== Pager ====
+pageSizeSel?.addEventListener("change",()=>{
+  pageSize=Number(pageSizeSel.value||10); page=1; renderCrypto();
+});
+firstPageBtn?.addEventListener("click",()=>{ if(page>1){ page=1; renderCrypto(); }});
+prevPageBtn?.addEventListener("click",()=>{ if(page>1){ page--; renderCrypto(); }});
+nextPageBtn?.addEventListener("click",()=>{ page++; renderCrypto(); });
+lastPageBtn?.addEventListener("click",()=>{ const {totalPages}=getFilteredSortedRows(); page=totalPages; renderCrypto(); });
 
-// ---- Detail tabs ----
+// ==== Detail tabs ====
 document.querySelectorAll(".tabs-mini .mini").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     document.querySelectorAll(".tabs-mini .mini").forEach(b=>b.classList.remove("active"));
@@ -146,7 +161,7 @@ document.querySelectorAll(".tabs-mini .mini").forEach(btn=>{
   });
 });
 
-// ---- Detail open/close ----
+// ==== Detail open/close ====
 function openAssetDetail(asset){
   detailTitle.textContent = `${asset.symbol} — ${asset.name}`;
   swapFromTxt.textContent = asset.symbol;
@@ -155,13 +170,13 @@ function openAssetDetail(asset){
   tvFrame.src=`https://s.tradingview.com/widgetembed/?symbol=${encodeURIComponent(asset.symbol)}USD&interval=60&hidesidetoolbar=1&hidetoptoolbar=1&symboledit=0&saveimage=0&theme=${theme}`;
 
   const q=encodeURIComponent(`${asset.name} ${asset.symbol} crypto`);
-  paneNews.innerHTML = [
+  paneNews.innerHTML=[
     {t:`Google News for ${asset.symbol}`, u:`https://news.google.com/search?q=${q}`},
     {t:`Search web news`, u:`https://www.google.com/search?q=${q}`},
     {t:`On Twitter/X`, u:`https://twitter.com/search?q=${q}&src=typed_query&f=live`}
   ].map(n=>`<div class="news-item"><a target="_blank" rel="noopener" href="${n.u}">${n.t}</a></div>`).join("");
-  paneOpinion.innerHTML = `<div class="news-item">No opinion items — add curated threads or posts here.</div>`;
-  paneResearch.innerHTML = `<div class="news-item">No research items — add PDF links or deep dives here.</div>`;
+  paneOpinion.innerHTML=`<div class="news-item">No opinion items — add curated threads or posts here.</div>`;
+  paneResearch.innerHTML=`<div class="news-item">No research items — add PDF links or deep dives here.</div>`;
 
   swapRes.textContent="—";
   swapBtn.onclick=()=>{
@@ -185,51 +200,50 @@ detailBack?.addEventListener("click", ()=>{
   document.getElementById("fundraisingSection").classList.toggle("hidden", activeTab!=="fundraising");
 });
 
-// ---- Data pipeline ----
+// ==== Data pipeline ====
 function getFilteredSortedRows(){
   let rows=assets.slice();
   if(query){
-    rows=rows.filter(a=> a.symbol.toLowerCase().includes(query) ||
+    rows=rows.filter(a=>
+      a.symbol.toLowerCase().includes(query) ||
       (a.name||"").toLowerCase().includes(query) ||
-      (a.tags||[]).some(t=>(t||"").toLowerCase().includes(query)));
+      (a.tags||[]).some(t=>(t||"").toLowerCase().includes(query))
+    );
   }
-  if(activeChip){ rows=rows.filter(a=>(a.tags||[]).includes(activeChip) || a.sector===activeChip); }
+  if(activeChip){ rows=rows.filter(a=>(a.tags||[]).includes(activeChip)||a.sector===activeChip); }
   if(onlyWatchlist){ rows=rows.filter(a=>watchlist.has(a.symbol)); }
 
   rows.sort((a,b)=>{
-    const ka = a[sortKey], kb = b[sortKey];
-    // string sort for some keys
+    const ka=a[sortKey], kb=b[sortKey];
     if(["name","symbol","sector"].includes(sortKey)){
-      const r = cmp(String(ka||"").toLowerCase(), String(kb||"").toLowerCase());
-      return sortDir==="desc" ? -r : r;
+      const r=cmp(String(ka||"").toLowerCase(), String(kb||"").toLowerCase());
+      return sortDir==="desc"?-r:r;
     }else{
-      const va = Number(ka ?? -Infinity);
-      const vb = Number(kb ?? -Infinity);
-      return sortDir==="desc" ? (vb - va) : (va - vb);
+      const va=Number(ka??-Infinity), vb=Number(kb??-Infinity);
+      return sortDir==="desc" ? (vb-va) : (va-vb);
     }
   });
 
   const total=rows.length;
-  const totalPages=Math.max(1, Math.ceil(total / pageSize));
+  const totalPages=Math.max(1, Math.ceil(total/pageSize));
   if(page>totalPages) page=totalPages;
   const start=(page-1)*pageSize, end=start+pageSize;
   const slice=rows.slice(start,end);
   return {slice,total,totalPages,start:end>total?total:end};
 }
 
-// ---- Renderers ----
+// ==== Renderers ====
 function renderCrypto(){
-  const {slice,total,totalPages,start} = getFilteredSortedRows();
+  const {slice,total,totalPages}=getFilteredSortedRows();
 
   cryptoTbody.innerHTML="";
   if(total===0){
     cryptoEmpty.classList.remove("hidden");
-    pageInfo.textContent = "0–0 of 0";
+    pageInfo.textContent="0–0 of 0";
     disablePager(true);
     return;
-  }else{
-    cryptoEmpty.classList.add("hidden");
   }
+  cryptoEmpty.classList.add("hidden");
 
   slice.forEach(a=>{
     const tr=document.createElement("tr");
@@ -246,64 +260,70 @@ function renderCrypto(){
       if(watchlist.has(a.symbol)) watchlist.delete(a.symbol); else watchlist.add(a.symbol);
       saveWatchlist(); renderCrypto();
     });
-// ... di dalam loop rows.forEach(a => { ... })
-
-const tdSec = document.createElement("td");
-tdSec.textContent = a.sector || "-";
-tdSec.title = a.sector || "-";
-
-const tdR1m = document.createElement("td");
-tdR1m.className = "num " + pctClass(a.roi1m);
-tdR1m.textContent = a.roi1m != null ? `${a.roi1m.toFixed(2)}%` : "-";
-
-const tdR1y = document.createElement("td");
-tdR1y.className = "num " + pctClass(a.roi1y);
-tdR1y.textContent = a.roi1y != null ? `${a.roi1y.toFixed(2)}%` : "-";
-
-const tdTags = document.createElement("td");
-tdTags.textContent = (a.tags || []).join(", ");
-tdTags.title = tdTags.textContent;
-
-// urutan append tetap sama:
-tr.append(tdStar, tdSymbol, tdName, tdPrice, tdChg, tdMc, tdFd, tdVol, tdSec, tdR1m, tdR1y, tdTags);
-
     tdStar.appendChild(star);
 
     // symbol + badge
     const tdSymbol=document.createElement("td");
     tdSymbol.textContent=a.symbol;
-    if(a.badge){ const b=document.createElement("span"); b.textContent=a.badge; b.className="badge-small primary"; b.style.marginLeft="8px"; tdSymbol.appendChild(b); }
+    if(a.badge){
+      const b=document.createElement("span");
+      b.textContent=a.badge;
+      b.className="badge-small primary";
+      b.style.marginLeft="8px";
+      tdSymbol.appendChild(b);
+    }
 
     // name + logo
     const tdName=document.createElement("td");
-    const wrap=document.createElement("div"); wrap.style.display="flex"; wrap.style.alignItems="center"; wrap.style.gap="8px";
-    if(a.logo){ const img=document.createElement("img"); img.src=a.logo; img.alt=a.symbol; img.width=18; img.height=18; img.style.borderRadius="4px"; wrap.appendChild(img); }
-    const nm=document.createElement("span"); nm.textContent=a.name||""; wrap.appendChild(nm); tdName.appendChild(wrap);
+    const wrap=document.createElement("div");
+    wrap.style.display="flex"; wrap.style.alignItems="center"; wrap.style.gap="8px";
+    if(a.logo){
+      const img=document.createElement("img");
+      img.src=a.logo; img.alt=a.symbol; img.width=18; img.height=18; img.style.borderRadius="4px";
+      wrap.appendChild(img);
+    }
+    const nm=document.createElement("span");
+    nm.textContent=a.name||"";
+    wrap.appendChild(nm);
+    tdName.appendChild(wrap);
 
     const tdPrice=document.createElement("td"); tdPrice.className="num"; tdPrice.textContent=a.price!=null?`$${formatNum(a.price)}`:"-";
     const tdChg=document.createElement("td"); tdChg.className="num "+pctClass(a.change24h); tdChg.textContent=a.change24h!=null?`${a.change24h.toFixed(2)}%`:"-";
     const tdMc=document.createElement("td"); tdMc.className="num"; tdMc.textContent=formatNum(a.marketCap);
     const tdFd=document.createElement("td"); tdFd.className="num"; tdFd.textContent=formatNum(a.fdv);
     const tdVol=document.createElement("td"); tdVol.className="num"; tdVol.textContent=formatNum(a.volume24h);
-    const tdSec=document.createElement("td"); tdSec.textContent=a.sector||"-";
-    const tdR1m=document.createElement("td"); tdR1m.className="num "+pctClass(a.roi1m); tdR1m.textContent=a.roi1m!=null?`${a.roi1m.toFixed(2)}%`:"-";
-    const tdR1y=document.createElement("td"); tdR1y.className="num "+pctClass(a.roi1y); tdR1y.textContent=a.roi1y!=null?`${a.roi1y.toFixed(2)}%`:"-";
-    const tdTags=document.createElement("td"); tdTags.textContent=(a.tags||[]).join(", ");
 
-    tr.append(tdStar,tdSymbol,tdName,tdPrice,tdChg,tdMc,tdFd,tdVol,tdSec,tdR1m,tdR1y,tdTags);
+    // >>> ini yang penting: tooltip agar teks panjang tidak “maksa” kolom melebar
+    const tdSec=document.createElement("td");
+    tdSec.textContent=a.sector||"-";
+    tdSec.title=a.sector||"-";
+
+    const tdR1m=document.createElement("td");
+    tdR1m.className="num "+pctClass(a.roi1m);
+    tdR1m.textContent=a.roi1m!=null?`${a.roi1m.toFixed(2)}%`:"-";
+
+    const tdR1y=document.createElement("td");
+    tdR1y.className="num "+pctClass(a.roi1y);
+    tdR1y.textContent=a.roi1y!=null?`${a.roi1y.toFixed(2)}%`:"-";
+
+    const tdTags=document.createElement("td");
+    tdTags.textContent=(a.tags||[]).join(", ");
+    tdTags.title=tdTags.textContent;
+
+    tr.append(tdStar, tdSymbol, tdName, tdPrice, tdChg, tdMc, tdFd, tdVol, tdSec, tdR1m, tdR1y, tdTags);
     tr.addEventListener("click", ()=>openAssetDetail(a));
     cryptoTbody.appendChild(tr);
   });
 
   // pager UI
-  const from = (total===0) ? 0 : ((page-1)*pageSize + 1);
-  const to = Math.min(page*pageSize, total);
-  pageInfo.textContent = `${from}–${to} of ${total}`;
+  const from=(page-1)*pageSize + 1;
+  const to=Math.min(page*pageSize, total);
+  pageInfo.textContent=`${from}–${to} of ${total}`;
   disablePager(false, {totalPages});
 }
-function disablePager(all, ctx={}){
+function disablePager(all,ctx={}){
   if(all){ [firstPageBtn,prevPageBtn,nextPageBtn,lastPageBtn].forEach(b=>b.disabled=true); return; }
-  const totalPages=ctx.totalPages ?? 1;
+  const totalPages=ctx.totalPages??1;
   firstPageBtn.disabled = page<=1;
   prevPageBtn.disabled  = page<=1;
   nextPageBtn.disabled  = page>=totalPages;
@@ -313,7 +333,11 @@ function disablePager(all, ctx={}){
 function renderFundraising(){
   let items=fundraising.slice();
   if(query){
-    items=items.filter(f=>(f.project||"").toLowerCase().includes(query)||(f.round||"").toLowerCase().includes(query)||(f.tags||[]).some(t=>(t||"").toLowerCase().includes(query)));
+    items=items.filter(f=>
+      (f.project||"").toLowerCase().includes(query) ||
+      (f.round||"").toLowerCase().includes(query) ||
+      (f.tags||[]).some(t=>(t||"").toLowerCase().includes(query))
+    );
   }
   if(activeChip){ items=items.filter(f=>(f.tags||[]).includes(activeChip)); }
 
@@ -333,7 +357,7 @@ function renderFundraising(){
   });
 }
 
-// ---- Boot ----
+// ==== Boot ====
 async function boot(){
   renderChips();
   try{
@@ -344,12 +368,10 @@ async function boot(){
     assets=await aRes.json();
     fundraising=await fRes.json();
 
-    // ensure XAN visual
+    // pastikan XAN ada badge + logo default
     assets=assets.map(a=>a.symbol==="XAN"?{...a,badge:a.badge||"Official · Anoma",logo:a.logo||"assets/logo-xan.png"}:a);
 
-    // init pager
     pageSizeSel.value=String(pageSize);
-
     renderCrypto();
     renderFundraising();
   }catch(e){
