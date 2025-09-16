@@ -20,6 +20,11 @@
     </div>
   </header>
 
+  <!-- Banner tagline -->
+  <section class="banner">
+    <p>Anoma intents unify liquidity across chains — demo data only.</p>
+  </section>
+
   <!-- Spotlight chips -->
   <section class="spotlight" id="spotlightChips"></section>
 
@@ -73,18 +78,23 @@
           </thead>
           <tbody id="cryptoTbody"></tbody>
         </table>
+        <div id="cryptoEmpty" class="empty hidden">No results found.</div>
       </div>
     </section>
 
     <!-- Fundraising list -->
     <section id="fundraisingSection" class="hidden">
       <ul id="fundraisingList" class="fund-list"></ul>
+      <div id="fundraisingEmpty" class="empty hidden">No results found.</div>
     </section>
   </main>
 
   <!-- Footer -->
   <footer class="footer">
-    <small>© Demo • Anoma vibe (red). Data dummy via <code>/data/*.json</code></small>
+    <small>
+      © Demo • Anoma vibe (red). Data dummy via <code>/data/*.json</code> ·
+      <a href="#">Docs</a> | <a href="#">GitHub</a> | <a href="#">About</a>
+    </small>
   </footer>
 
   <!-- Coin Modal -->
