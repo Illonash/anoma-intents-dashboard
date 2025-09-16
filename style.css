@@ -118,12 +118,42 @@ tr.highlight-xan td{background:rgba(229,57,53,0.08)!important;}
 @media (max-width:920px){ .detail-grid{grid-template-columns:1fr} }
 
 /* Footer: X big + powered by illonashanum */
-.footer{padding:22px 16px;border-top:1px solid #202026;text-align:center;color:var(--muted)}
-:root.light .footer{border-top:1px solid #e7e7ea;color:#5a5a5f}
-.footer-pro{display:inline-flex;align-items:center;gap:14px}
-.footer .x-large{width:40px;height:40px;display:block}
-.powered-line{display:flex;align-items:center;gap:8px}
-.powered{font-weight:700;letter-spacing:.02em;text-transform:lowercase;opacity:.9}
-.owner{font-weight:800;letter-spacing:.02em;color:var(--text);text-decoration:none;border-bottom:1px solid transparent}
-.owner:hover{border-color:currentColor}
-.tagline{display:block;margin-top:8px;font-size:12px}
+/* ===== Footer ===== */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  font-size: 14px;
+  border-top: 1px solid #333;
+  background: var(--bg-color);
+  color: var(--text-color);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footer-left img.x-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  transition: content 0.3s ease;
+}
+
+.footer-right {
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* ===== Logo swap on theme ===== */
+:root.light .footer-left img.x-logo {
+  content: url("assets/x-logo-light.png");
+}
+
+:root.dark .footer-left img.x-logo {
+  content: url("assets/x-logo-dark.png");
+}
+
