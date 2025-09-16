@@ -15,7 +15,7 @@
       <span class="badge demo">DEMO MODE — login disabled</span>
     </div>
     <div class="actions">
-      <input id="globalSearch" type="search" placeholder="Type an intent… e.g. swap 100 usdc → xan / top gainer modular" />
+      <input id="globalSearch" type="search" placeholder="Search coins or fundraising..." />
       <button id="loginBtn" class="ghost">Sign in</button>
     </div>
   </header>
@@ -48,7 +48,6 @@
         </div>
         <div class="right">
           <label><input type="checkbox" id="onlyWatchlist" /> Watchlist only</label>
-          <button id="openPaletteBtn" class="ghost" title="Ctrl+K">Intent (⌘/Ctrl+K)</button>
         </div>
       </div>
 
@@ -83,20 +82,8 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <small>© Demo • Anoma vibe (red). Data dummy via assets/data/*.json</small>
+    <small>© Demo • Anoma vibe (red). Data dummy via <code>/data/*.json</code></small>
   </footer>
-
-  <!-- Command Palette (Intent Mode) -->
-  <div id="intentOverlay" class="overlay hidden">
-    <div class="palette">
-      <input id="intentInput" type="text" placeholder="ketik intent… contoh: swap 100 usdc → xan / top gainer modular" />
-      <div id="intentPreview" class="preview">hint: enter untuk apply, esc untuk tutup</div>
-      <div class="actions">
-        <button id="intentApply" class="ghost">Apply</button>
-        <button id="intentClose" class="ghost">Close</button>
-      </div>
-    </div>
-  </div>
 
   <script src="app.js"></script>
 </body>
