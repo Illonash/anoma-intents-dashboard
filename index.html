@@ -12,10 +12,10 @@
     <div class="brand">
       <img src="assets/logo-xan.png" alt="XAN Logo" class="logo" />
       <h1>Anoma Intents Dashboard</h1>
-      <span class="badge demo">DEMO MODE — login disabled</span>
     </div>
     <div class="actions">
       <input id="globalSearch" type="search" placeholder="Search coins or fundraising..." />
+      <button id="themeToggle" class="ghost" title="Toggle theme">Theme</button>
       <button id="loginBtn" class="ghost">Sign in</button>
     </div>
   </header>
@@ -48,6 +48,8 @@
         </div>
         <div class="right">
           <label><input type="checkbox" id="onlyWatchlist" /> Watchlist only</label>
+          <button id="btnTopGainers" class="ghost">Top Gainers</button>
+          <button id="btnTopLosers" class="ghost">Top Losers</button>
         </div>
       </div>
 
@@ -84,6 +86,22 @@
   <footer class="footer">
     <small>© Demo • Anoma vibe (red). Data dummy via <code>/data/*.json</code></small>
   </footer>
+
+  <!-- Coin Modal -->
+  <div id="coinModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div id="coinModalTitle"><strong>Asset</strong></div>
+        <button id="coinModalClose" class="modal-close">Close</button>
+      </div>
+      <div class="modal-body">
+        <div id="coinModalMeta"></div>
+        <div id="coinModalChart"></div>
+        <div id="coinModalNews"></div>
+        <div id="coinModalSwap"></div>
+      </div>
+    </div>
+  </div>
 
   <script src="app.js"></script>
 </body>
