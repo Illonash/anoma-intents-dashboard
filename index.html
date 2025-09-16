@@ -54,25 +54,45 @@
 
       <div class="table-wrap">
         <table class="table" id="cryptoTable">
-          <thead>
+          <thead id="cryptoThead">
             <tr>
               <th>★</th>
-              <th>Symbol</th>
-              <th>Name</th>
-              <th class="num">Price</th>
-              <th class="num">24h</th>
-              <th class="num">Market Cap</th>
-              <th class="num">FDV</th>
-              <th class="num">Vol 24h</th>
-              <th>Sector</th>
-              <th class="num">ROI 1M</th>
-              <th class="num">ROI 1Y</th>
+              <th class="sortable" data-key="symbol">Symbol</th>
+              <th class="sortable" data-key="name">Name</th>
+              <th class="num sortable" data-key="price">Price</th>
+              <th class="num sortable" data-key="change24h">24h</th>
+              <th class="num sortable" data-key="marketCap">Market Cap</th>
+              <th class="num sortable" data-key="fdv">FDV</th>
+              <th class="num sortable" data-key="volume24h">Vol 24h</th>
+              <th class="sortable" data-key="sector">Sector</th>
+              <th class="num sortable" data-key="roi1m">ROI 1M</th>
+              <th class="num sortable" data-key="roi1y">ROI 1Y</th>
               <th>Tags</th>
             </tr>
           </thead>
           <tbody id="cryptoTbody"></tbody>
         </table>
         <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+      </div>
+
+      <!-- Pagination controls -->
+      <div class="pager">
+        <div class="pager-left">
+          <label>Rows per page
+            <select id="pageSize">
+              <option>10</option>
+              <option>20</option>
+              <option>50</option>
+            </select>
+          </label>
+          <span id="pageInfo" class="page-info">—</span>
+        </div>
+        <div class="pager-right">
+          <button id="firstPage" class="ghost">« First</button>
+          <button id="prevPage" class="ghost">‹ Prev</button>
+          <button id="nextPage" class="ghost">Next ›</button>
+          <button id="lastPage" class="ghost">Last »</button>
+        </div>
       </div>
 
       <!-- Note bawah tabel kiri -->
