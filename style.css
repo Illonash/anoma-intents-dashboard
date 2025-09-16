@@ -287,3 +287,17 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
   .table thead th:nth-child(4),
   .table tbody td:nth-child(4){ display:table-cell; } /* tetap tampilkan Price */
 }
+/* === Fix sinkronisasi header-body untuk kolom numerik === */
+.table thead th.num,
+.table tbody td.num {
+  padding-right: 18px;  /* samakan dengan ruang panah sort */
+}
+
+/* Pastikan padding kiri seragam */
+.table thead th,
+.table tbody td {
+  padding-left: 10px;
+}
+
+/* Panah sort tidak mengganggu klik & tidak menambah lebar */
+.sortable::after { pointer-events: none; }
