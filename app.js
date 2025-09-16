@@ -246,6 +246,27 @@ function renderCrypto(){
       if(watchlist.has(a.symbol)) watchlist.delete(a.symbol); else watchlist.add(a.symbol);
       saveWatchlist(); renderCrypto();
     });
+// ... di dalam loop rows.forEach(a => { ... })
+
+const tdSec = document.createElement("td");
+tdSec.textContent = a.sector || "-";
+tdSec.title = a.sector || "-";
+
+const tdR1m = document.createElement("td");
+tdR1m.className = "num " + pctClass(a.roi1m);
+tdR1m.textContent = a.roi1m != null ? `${a.roi1m.toFixed(2)}%` : "-";
+
+const tdR1y = document.createElement("td");
+tdR1y.className = "num " + pctClass(a.roi1y);
+tdR1y.textContent = a.roi1y != null ? `${a.roi1y.toFixed(2)}%` : "-";
+
+const tdTags = document.createElement("td");
+tdTags.textContent = (a.tags || []).join(", ");
+tdTags.title = tdTags.textContent;
+
+// urutan append tetap sama:
+tr.append(tdStar, tdSymbol, tdName, tdPrice, tdChg, tdMc, tdFd, tdVol, tdSec, tdR1m, tdR1y, tdTags);
+
     tdStar.appendChild(star);
 
     // symbol + badge
