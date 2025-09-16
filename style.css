@@ -103,3 +103,5 @@ select, input[type="checkbox"]{
 
 .footer{padding:20px 16px; color:#9a9a9a; text-align:center; border-top:1px solid #202026}
 .hidden{display:none}
+.badge.demo { display: none !important; }
+
