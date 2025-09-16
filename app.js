@@ -70,30 +70,44 @@ function closePalette(){
 
 // tombol/shortcut buka-tutup
 safeOn(openPaletteBtn, "click", () => openPalette(""));
+
 document.addEventListener("keydown", (e)=>{
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); openPalette(""); }
-  if (e.key==="Escape" && !intentOverlay.classList.contains("hidden")) closePalette();
+  // Ctrl/Cmd+K => buka
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){
+    e.preventDefault();
+    openPalette("");
+  }
+  // ESC => tutup
+  if (e.key==="Escape" && !intentOverlay.classList.contains("hidden")){
+    closePalette();
+  }
 });
 
-// --- DELEGATION: satu listener untuk semua klik di dalam overlay ---
+// --- DELEGATION: satu listener untuk semua klik di overlay ---
 safeOn(intentOverlay, "click", (e)=>{
-  const id = (e.target && e.target.id) || "";
-  if (e.target === intentOverlay) {           // klik area gelap
+  const target = e.target;
+
+  // klik area gelap menutup
+  if (target === intentOverlay){
     closePalette();
     return;
   }
-  if (id === "intentClose") {                 // klik tombol Close
+
+  // tombol Close
+  if (target && target.id === "intentClose"){
     closePalette();
     return;
   }
-  if (id === "intentApply") {                 // klik Apply
+
+  // tombol Apply
+  if (target && target.id === "intentApply"){
     const i = parseIntent(intentInput?.value || "");
     applyIntent(i);
     closePalette();
   }
 });
 
-// preview + enter untuk apply
+// preview & Enter untuk apply
 function renderIntentPreview(){
   const i = parseIntent(intentInput?.value || "");
   if (!intentPreview) return;
@@ -102,14 +116,13 @@ function renderIntentPreview(){
 }
 safeOn(intentInput, "input", renderIntentPreview);
 safeOn(intentInput, "keydown", (e)=>{
-  if (e.key==="Enter"){
+  if (e.key === "Enter"){
     e.preventDefault();
     const i = parseIntent(intentInput?.value || "");
     applyIntent(i);
     closePalette();
   }
 });
-
 
 // Spotlight chips
 function renderChips() {
