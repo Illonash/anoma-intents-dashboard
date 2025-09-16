@@ -1,0 +1,43 @@
+[
+  {
+    "symbol": "XAN",
+    "name": "Anoma Token",
+    "price": 1.25,
+    "change24h": 3.2,
+    "marketCap": 1500000000,
+    "fdv": 2500000000,
+    "volume24h": 5600000,
+    "sector": "Modular",
+    "roi1m": 12.5,
+    "roi1y": 85.3,
+    "tags": ["Anoma", "ZK", "Modular"],
+    "badge": "Official · Anoma",
+    "logo": "assets/logo-xan.png"
+  },
+  {
+    "symbol": "BTC",
+    "name": "Bitcoin",
+    "price": 65000,
+    "change24h": -0.8,
+    "marketCap": 1280000000000,
+    "fdv": 1280000000000,
+    "volume24h": 35000000000,
+    "sector": "Store of Value",
+    "roi1m": 5.3,
+    "roi1y": 40.1,
+    "tags": ["DeFi"]
+  },
+  {
+    "symbol": "ETH",
+    "name": "Ethereum",
+    "price": 3200,
+    "change24h": 2.1,
+    "marketCap": 380000000000,
+    "fdv": 380000000000,
+    "volume24h": 18000000000,
+    "sector": "Smart Contract",
+    "roi1m": 6.7,
+    "roi1y": 55.0,
+    "tags": ["DeFi", "AI"]
+  }
+]
