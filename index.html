@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Anoma Intents Dashboard (Demo)</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="topbar">
+    <div class="brand">
+      <img src="assets/logo-xan.png" alt="XAN Logo" class="logo" />
+      <h1>Anoma Intents Dashboard</h1>
+      <span class="badge demo">DEMO MODE — login disabled</span>
+    </div>
+    <div class="actions">
+      <input id="globalSearch" type="search" placeholder="Search coins or fundraising…" />
+      <button id="loginBtn" class="ghost">Sign in</button>
+    </div>
+  </header>
+
+  <!-- Spotlight chips -->
+  <section class="spotlight" id="spotlightChips">
+    <!-- chips injected by app.js -->
+  </section>
+
+  <!-- Tabs -->
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="crypto">Cryptocurrencies</button>
+    <button class="tab" data-tab="fundraising">Fundraising</button>
+  </nav>
+
+  <!-- Content -->
+  <main>
+    <!-- Crypto table -->
+    <section id="cryptoSection">
+      <div class="toolbar">
+        <div class="left">
+          <label>Sort by:
+            <select id="sortSelect">
+              <option value="marketCap:desc">Market Cap (desc)</option>
+              <option value="price:desc">Price (desc)</option>
+              <option value="change24h:desc">24h Change (desc)</option>
+              <option value="change24h:asc">24h Change (asc)</option>
+              <option value="roi1m:desc">1M ROI (desc)</option>
+              <option value="roi1y:desc">1Y ROI (desc)</option>
+            </select>
+          </label>
+        </div>
+        <div class="right">
+          <label><input type="checkbox" id="onlyWatchlist" /> Watchlist only</label>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="cryptoTable">
+          <thead>
+            <tr>
+              <th style="width:44px;">★</th>
+              <th>Symbol</th>
+              <th>Name</th>
+              <th class="num">Price</th>
+              <th class="num">24h</th>
+              <th class="num">Market Cap</th>
+              <th class="num">FDV</th>
+              <th class="num">Vol 24h</th>
+              <th>Sector</th>
+              <th class="num">ROI 1M</th>
+              <th class="num">ROI 1Y</th>
+              <th>Tags</th>
+            </tr>
+          </thead>
+          <tbody id="cryptoTbody">
+            <!-- rows injected by app.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Fundraising list -->
+    <section id="fundraisingSection" class="hidden">
+      <ul id="fundraisingList" class="fund-list">
+        <!-- items injected by app.js -->
+      </ul>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <small>© Demo • Anoma vibe (red). Data dummy via /data/*.json</small>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
