@@ -300,5 +300,30 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
   padding-left: 10px !important;
 }
 
+/* === ALIGN FIX: header & body numerik sejajar di semua ukuran layar === */
+.table thead th.num {
+  text-align: right !important;
+  padding-right: 18px !important; /* samakan dengan ruang panah sort */
+}
+
+.table tbody td.num {
+  text-align: right !important;
+  padding-right: 18px !important; /* harus sama dengan th.num */
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" 1 !important;
+}
+
+/* Panah sort tidak mengganggu klik dan tidak menambah lebar */
+.sortable::after { pointer-events: none; }
+
+/* (Opsional) responsive: di hp tampilkan kolom inti saja */
+@media (max-width: 720px) {
+  /* Sembunyikan kolom mulai #5 ke kanan (sesuaikan kalau mau) */
+  .table thead th:nth-child(n+5),
+  .table tbody td:nth-child(n+5) {
+    display: none;
+  }
+}
+
 /* Panah sort tidak mengganggu klik & tidak menambah lebar */
 .sortable::after { pointer-events: none; }
