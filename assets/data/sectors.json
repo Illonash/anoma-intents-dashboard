@@ -1,9 +1,0 @@
-[
-  { "sector": "Anoma", "weight": 12 },
-  { "sector": "ZK", "weight": 18 },
-  { "sector": "Modular", "weight": 22 },
-  { "sector": "AI", "weight": 15 },
-  { "sector": "RWA", "weight": 10 },
-  { "sector": "DeFi", "weight": 20 },
-  { "sector": "Meme", "weight": 3 }
-]
