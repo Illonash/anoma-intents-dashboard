@@ -46,4 +46,73 @@ input[type="search"]{
 }
 .ghost{
   background:transparent; color:var(--muted);
-  border:1px solid #2a2a2f; padding:9px 12px; border-radius
+  border:1px solid #2a2a2f; padding:9px 12px; border-radius:10px; cursor:pointer
+}
+.ghost:hover{border-color:#3a3a40; color:#cfcfcf}
+
+/* Spotlight chips */
+.spotlight{
+  display:flex; gap:8px; flex-wrap:wrap;
+  padding:12px 16px; border-bottom:1px solid #202026
+}
+.chip{
+  background:var(--chip); color:#d6d6d6;
+  border:1px solid #2a2a30; padding:8px 10px; border-radius:999px;
+  cursor:pointer; user-select:none; font-size:13px
+}
+.chip.active{background:var(--chip-active); border-color:var(--primary); color:#ffd9d8}
+
+/* Tabs */
+.tabs{display:flex; gap:8px; padding:8px 16px; border-bottom:1px solid #202026}
+.tab{
+  background:transparent; color:#d8d8d8; border:1px solid #2a2a30;
+  padding:8px 12px; border-radius:999px; cursor:pointer
+}
+.tab.active{border-color:var(--primary); color:#fff}
+
+/* Layout */
+main{padding:12px 16px}
+.toolbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:8px}
+select, input[type="checkbox"]{
+  background:var(--surface);
+  color:var(--text); border:1px solid #2a2a30; border-radius:8px; padding:8px
+}
+.table-wrap{background:var(--surface); border:1px solid #222; border-radius:var(--radius); overflow:auto}
+.table{width:100%; border-collapse:separate; border-spacing:0}
+.table thead th{
+  position:sticky; top:0; z-index:1; background:var(--surface-2);
+  color:#cfcfcf; font-weight:600; text-align:left; padding:10px; border-bottom:1px solid #26262b
+}
+.table tbody td{padding:10px; border-bottom:1px solid #1f1f24; color:#dadada}
+.table tbody tr:hover{background:#17171c}
+.num{text-align:right}
+.up{color:var(--pos)} .down{color:var(--neg)}
+.star{
+  width:24px; height:24px; display:inline-grid; place-items:center;
+  border:1px solid #2a2a2f; border-radius:8px; cursor:pointer; color:#9c9c9c; background:#1a1a1f
+}
+.star.active{border-color:var(--primary); color:#ffd9d8; background:#2a1212}
+.badge-small{display:inline-block; padding:2px 6px; border-radius:999px; font-size:11px; border:1px solid #3a3a40; color:#e6e6e6; background:#1c1c22}
+.badge-small.primary{border-color:var(--primary); color:#ffd9d8; background:#2a1212}
+
+/* Fundraising list */
+.fund-list{list-style:none; padding:0; margin:0; display:grid; gap:8px}
+.fund-item{background:var(--surface); border:1px solid #222; border-radius:12px; padding:12px; display:flex; justify-content:space-between; gap:12px}
+.fund-meta{color:var(--muted); font-size:13px}
+.tag{background:#232327; color:#dcdcdc; border:1px solid #303036; padding:3px 8px; border-radius:999px; font-size:12px; margin-left:6px}
+
+.footer{padding:20px 16px; color:#9a9a9a; text-align:center; border-top:1px solid #202026}
+.hidden{display:none}
+
+/* --- Command Palette --- */
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:grid; place-items:center; z-index:50}
+.palette{
+  width:min(760px,92vw); background:var(--surface-2); border:1px solid #2a2a30;
+  border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4)
+}
+.palette input{
+  width:100%; padding:12px 14px; border-radius:10px; border:1px solid #2a2a30;
+  background:var(--surface); color:var(--text); font-size:15px; outline:none
+}
+.palette .preview{margin-top:8px; color:#c9c9c9; font-size:13px}
+.palette .actions{margin-top:12px; display:flex; gap:8px; justify-content:flex-end}
