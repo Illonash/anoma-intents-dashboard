@@ -68,14 +68,49 @@ function closePalette(){
   intentOverlay.classList.add("hidden");
   lastIntent = null;
 }
+
+// tombol/shortcut buka-tutup
 safeOn(openPaletteBtn, "click", () => openPalette(""));
 document.addEventListener("keydown", (e)=>{
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==="k"){ e.preventDefault(); openPalette(""); }
   if (e.key==="Escape" && !intentOverlay.classList.contains("hidden")) closePalette();
 });
-safeOn(intentClose, "click", closePalette);
-// klik area gelap di luar card untuk menutup
-safeOn(intentOverlay, "click", (e)=>{ if (e.target === intentOverlay) closePalette(); });
+
+// --- DELEGATION: satu listener untuk semua klik di dalam overlay ---
+safeOn(intentOverlay, "click", (e)=>{
+  const id = (e.target && e.target.id) || "";
+  if (e.target === intentOverlay) {           // klik area gelap
+    closePalette();
+    return;
+  }
+  if (id === "intentClose") {                 // klik tombol Close
+    closePalette();
+    return;
+  }
+  if (id === "intentApply") {                 // klik Apply
+    const i = parseIntent(intentInput?.value || "");
+    applyIntent(i);
+    closePalette();
+  }
+});
+
+// preview + enter untuk apply
+function renderIntentPreview(){
+  const i = parseIntent(intentInput?.value || "");
+  if (!intentPreview) return;
+  intentPreview.textContent = i ? ("parsed: " + JSON.stringify(i))
+                                : "intent tidak dikenali. contoh: swap 100 usdc → xan";
+}
+safeOn(intentInput, "input", renderIntentPreview);
+safeOn(intentInput, "keydown", (e)=>{
+  if (e.key==="Enter"){
+    e.preventDefault();
+    const i = parseIntent(intentInput?.value || "");
+    applyIntent(i);
+    closePalette();
+  }
+});
+
 
 // Spotlight chips
 function renderChips() {
