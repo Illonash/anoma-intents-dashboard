@@ -104,15 +104,32 @@ select, input[type="checkbox"]{
 .footer{padding:20px 16px; color:#9a9a9a; text-align:center; border-top:1px solid #202026}
 .hidden{display:none}
 
-/* --- Command Palette --- */
-.overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:grid; place-items:center; z-index:50}
-.palette{
-  width:min(760px,92vw); background:var(--surface-2); border:1px solid #2a2a30;
-  border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4)
+/* --- Command Palette (posisi di bawah header) --- */
+.overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  justify-content: center;      /* center horizontal */
+  align-items: flex-start;      /* start vertical (bawah header) */
+  padding-top: 96px;            /* atur jarak dari top sesuai tinggi header */
+  z-index: 50;
 }
-.palette input{
-  width:100%; padding:12px 14px; border-radius:10px; border:1px solid #2a2a30;
-  background:var(--surface); color:var(--text); font-size:15px; outline:none
+.palette{
+  width: min(760px, 92vw);
+  background: var(--surface-2);
+  border: 1px solid #2a2a30;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.4);
+  transform: translateY(-6px);
+  transition: transform .12s ease, opacity .12s ease;
+  opacity: 1;
 }
 .palette .preview{margin-top:8px; color:#c9c9c9; font-size:13px}
 .palette .actions{margin-top:12px; display:flex; gap:8px; justify-content:flex-end}
+.palette .actions button{cursor:pointer}
+
+@media (max-width: 640px){
+  .overlay{ padding-top: 72px; }
+}
