@@ -1,288 +1,51 @@
-/* ==============================
-   THEME TOKENS
-============================== */
-:root{
-  --bg:#0E0E10;
-  --surface:#151518;
-  --surface-2:#1B1B20;
-  --text:#EAEAEA;
-  --muted:#A3A3A3;
-  --primary:#E53935;      /* Anoma vibe (red) */
-  --pos:#16A34A;
-  --neg:#EF4444;
-  --chip:#232327;
-  --chip-active:#311112;
-  --radius:14px;
+/* ========== BASE ========== */
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
 
-:root.light{
-  --bg:#FAFAFA;
-  --surface:#FFFFFF;
-  --surface-2:#F3F3F5;
-  --text:#1D1D1F;
-  --muted:#5A5A5F;
-  --primary:#E53935;
-  --pos:#0E7A34;
-  --neg:#C62828;
-  --chip:#EFEFEF;
-  --chip-active:#FDE7E7;
-  --radius:14px;
+:root {
+  --bg: #111;
+  --text: #eee;
+  --card: #1a1a1a;
 }
 
-/* ==============================
-   BASE
-============================== */
-*{ box-sizing:border-box }
-html,body{ height:100% }
-body{
-  margin:0;
-  background:var(--bg);
-  color:var(--text);
-  font:14px/1.45 Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
-}
-.hidden{ display:none !important; }
-
-/* ==============================
-   TOP BAR
-============================== */
-.topbar{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; justify-content:space-between; gap:16px;
-  padding:12px 16px;
-  background:rgba(14,14,16,.9);
-  border-bottom:1px solid #222;
-  backdrop-filter: blur(8px);
-}
-:root.light .topbar{
-  background:rgba(255,255,255,.9);
-  border-bottom:1px solid #E7E7EA;
-}
-.brand{ display:flex; align-items:center; gap:12px }
-.logo{ width:28px; height:28px; border-radius:8px }
-h1{ margin:0; font-size:16px; font-weight:600 }
-.actions{ display:flex; align-items:center; gap:8px }
-input[type="search"]{
-  width:320px; max-width:56vw;
-  background:var(--surface);
-  color:var(--text);
-  border:1px solid #25252A;
-  outline:none; padding:10px 12px; border-radius:10px
-}
-.ghost{
-  background:transparent; color:var(--muted);
-  border:1px solid #2A2A2F; padding:9px 12px; border-radius:10px; cursor:pointer
-}
-.ghost:hover{ border-color:#3A3A40; color:#CFCFCF }
-:root.light .ghost:hover{ color:#1D1D1F }
-
-/* ==============================
-   SPOTLIGHT CHIPS
-============================== */
-.spotlight{ display:flex; gap:8px; flex-wrap:wrap; padding:12px 16px; border-bottom:1px solid #202026 }
-.chip{
-  background:var(--chip); border:1px solid #2A2A30; color:#D6D6D6;
-  padding:8px 10px; border-radius:999px; cursor:pointer; font-size:13px
-}
-.chip.active{ background:var(--chip-active); border-color:var(--primary); color:#FFD9D8 }
-
-/* ==============================
-   TABS
-============================== */
-.tabs{ display:flex; gap:8px; padding:8px 16px; border-bottom:1px solid #202026 }
-.tab{
-  background:transparent; color:#D8D8D8; border:1px solid #2A2A30;
-  padding:8px 12px; border-radius:999px; cursor:pointer
-}
-.tab.active{ border-color:var(--primary); color:#FFF }
-:root.light .tab{ color:#333; border-color:#DDD }
-:root.light .tab.active{ color:#1D1D1F; border-color:var(--primary) }
-
-/* ==============================
-   MAIN LAYOUT
-============================== */
-main{ padding:12px 16px }
-.toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px }
-.table-wrap{
-  background:var(--surface); border:1px solid #222; border-radius:var(--radius);
-  overflow:auto; position:relative
+:root.light {
+  --bg: #fff;
+  --text: #111;
+  --card: #f5f5f5;
 }
 
-/* ==============================
-   TABLE (FINAL)
-   - fixed layout (header=body)
-   - colgroup menentukan lebar
-   - angka tabular-nums
-   - panah sort fixed width, tak menggeser header
-============================== */
-.table{
-  width:100%;
-  border-collapse:separate; border-spacing:0;
-  table-layout:fixed; /* penting */
+/* ========== TABLE ========== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
 }
 
-.table thead th{
-  position:sticky; top:0; z-index:1;
-  background:var(--surface-2);
-  color:#CFCFCF; font-weight:600; text-align:left;
-  padding:10px; border-bottom:1px solid #26262B;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-:root.light .table thead th{ color:var(--text); border-bottom:1px solid #E7E7EA }
-
-.table tbody td{
-  padding:10px; border-bottom:1px solid #1F1F24; color:#DADADA;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-:root.light .table tbody td{ color:#1D1D1F; border-bottom:1px solid #EEF0F2 }
-
-.table tbody tr:hover{ background:#17171C; transition:background .2s }
-:root.light .table tbody tr:hover{ background:#F7F7F9 }
-
-.num{
-  text-align:right;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum" 1;
+.table thead th {
+  font-weight: 600;
+  text-align: left;
+  padding: 10px;
+  border-bottom: 1px solid #333;
+  color: var(--text);
 }
 
-.up{ color:var(--pos) } .down{ color:var(--neg) }
-
-/* watchlist star */
-.star{
-  width:24px; height:24px; display:inline-grid; place-items:center;
-  border:1px solid #2A2A2F; border-radius:8px;
-  cursor:pointer; color:#9C9C9C; background:#1A1A1F
-}
-.star.active{ border-color:var(--primary); color:#FFD9D8; background:#2A1212 }
-:root.light .star{ background:#FFF; border-color:#DDD; color:#777 }
-:root.light .star.active{ background:#FDE7E7; color:#B40000; border-color:#FFB3B3 }
-
-/* small badge */
-.badge-small{
-  display:inline-block; padding:2px 6px; border-radius:999px; font-size:11px;
-  border:1px solid #3A3A40; color:#E6E6E6; background:#1C1C22
-}
-.badge-small.primary{ border-color:var(--primary); color:#FFD9D8; background:#2A1212 }
-:root.light .badge-small{ background:#F5F5F7; color:#333; border-color:#DDD }
-:root.light .badge-small.primary{ background:#FDE7E7; color:#A40000; border-color:#FFC7C7 }
-
-/* coin logo must not stretch column */
-#cryptoTbody img{
-  width:18px; height:18px; flex:0 0 18px; object-fit:contain; border-radius:4px;
+.table tbody td {
+  padding: 10px;
+  border-bottom: 1px solid #222;
 }
 
-/* highlight XAN row */
-tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
-:root.light tr.highlight-xan td{ background:#FFF2F2 !important }
-
-/* Sortable header */
-.sortable{
-  cursor:pointer; user-select:none; position:relative;
-  padding-right:18px; /* ruang panah */
+/* highlight baris XAN */
+.table tbody tr.xan-row {
+  background: rgba(255, 0, 0, 0.08);
 }
-.sortable[data-sort="asc"]::after,
-.sortable[data-sort="desc"]::after{
-  position:absolute; right:6px; top:50%; transform:translateY(-50%);
-  font-size:10px; opacity:.8; width:12px; text-align:center; display:inline-block; content:"";
-}
-.sortable[data-sort="asc"]::after{ content:"▲" }
-.sortable[data-sort="desc"]::after{ content:"▼" }
 
-/* Empty & Note */
-.empty{ padding:16px; text-align:center; color:var(--muted) }
-.note{ margin-top:8px; color:var(--muted); font-size:12px }
-
-/* ==============================
-   PAGER
-============================== */
-.pager{ display:flex; justify-content:space-between; align-items:center; margin:10px 2px }
-.pager .page-info{ margin-left:10px; color:var(--muted); font-size:12px }
-.pager .ghost{ padding:6px 10px }
-
-/* ==============================
-   FUNDRAISING LIST
-============================== */
-.fund-list{ list-style:none; padding:0; margin:0; display:grid; gap:8px }
-.fund-item{
-  background:var(--surface); border:1px solid #222; border-radius:12px;
-  padding:12px; display:flex; justify-content:space-between; gap:12px
-}
-.fund-meta{ color:var(--muted); font-size:13px }
-.tag{
-  background:#232327; color:#DCDCDC; border:1px solid #303036;
-  padding:3px 8px; border-radius:999px; font-size:12px; margin-left:6px
-}
-:root.light .fund-item{ background:#FFF; border-color:#E7E7EA }
-:root.light .tag{ background:#EFEFEF; color:#333; border-color:#DDD }
-
-/* ==============================
-   DETAIL VIEW (chart/news/swap)
-============================== */
-.detail{ padding:12px 0 }
-.detail-header{ display:flex; align-items:center; gap:12px; margin:0 16px 10px }
-.detail-header h2{ margin:0; font-size:18px }
-.detail-grid{ display:grid; grid-template-columns:2fr 1fr; gap:14px; margin:0 16px }
-.detail-chart iframe{ background:var(--surface); border-radius:12px }
-.detail-side{ display:flex; flex-direction:column; gap:10px }
-
-.tabs-mini{ display:flex; gap:6px }
-.tabs-mini .mini{
-  padding:6px 10px; border:1px solid #2A2A30; border-radius:999px;
-  background:transparent; color:#CFCFCF; cursor:pointer; font-size:12px
-}
-.tabs-mini .mini.active{ border-color:var(--primary); color:#FFF }
-:root.light .tabs-mini .mini{ color:#333; border-color:#DDD }
-:root.light .tabs-mini .mini.active{ color:#1D1D1F; border-color:var(--primary) }
-
-.pane{
-  background:var(--surface); border:1px solid #222; border-radius:12px;
-  min-height:180px; padding:10px; overflow:auto
-}
-:root.light .pane{ background:#FFF; border-color:#E7E7EA }
-.pane .news-item{ padding:8px; border-bottom:1px solid #2A2A30 }
-:root.light .pane .news-item{ border-bottom:1px solid #EEE }
-.pane .news-item:last-child{ border-bottom:0 }
-.pane .news-item a{ text-decoration:none; color:var(--text) }
-.pane .news-item a:hover{ color:var(--primary) }
-
-.swap-card{ background:var(--surface); border:1px solid #222; border-radius:12px; padding:10px }
-:root.light .swap-card{ background:#FFF; border-color:#E7E7EA }
-.swap-title{ font-weight:600; margin-bottom:6px }
-.swap-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap }
-.swap-row input{
-  width:120px; padding:6px; border:1px solid #2A2A30; border-radius:8px;
-  background:transparent; color:var(--text)
-}
-:root.light .swap-row input{ border-color:#DDD }
-.swap-result{ margin-top:6px; color:var(--muted) }
-
-@media (max-width:920px){ .detail-grid{ grid-template-columns:1fr } }
-
-/* ==============================
-   FOOTER
-============================== */
-.footer{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:15px 30px; font-size:14px;
-  border-top:1px solid #333; background:var(--bg); color:var(--text)
-}
-:root.light .footer{ border-top:1px solid #E7E7EA }
-.footer-left{ display:flex; align-items:center; gap:10px }
-.footer-left img.x-logo{ width:32px; height:32px; object-fit:contain; transition:content .3s ease }
-.footer-right{ font-style:italic; opacity:.8 }
-.powered{ opacity:.85; letter-spacing:.02em }
-.owner{ font-weight:800; color:var(--text); text-decoration:none; border-bottom:1px solid transparent }
-.owner:hover{ border-color:currentColor }
-
-/* swap logo sesuai tema */
-:root.light .footer-left img.x-logo{ content:url("assets/x-logo-light.png") }
-:root:not(.light) .footer-left img.x-logo{ content:url("assets/x-logo-dark.png") }
-
-/* ==============================
-   RESPONSIVE TABLE (mobile)
-   - tampilkan kolom inti saja
-============================== */
-@media (max-width:720px){
-  .table thead th.num {
+/* === ALIGN FIX: numeric columns === */
+.table thead th.num {
   text-align: right !important;
   padding-right: 18px !important;
 }
@@ -294,10 +57,68 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
   font-feature-settings: "tnum" 1 !important;
 }
 
+/* samakan padding kiri semua */
 .table thead th,
 .table tbody td {
   padding-left: 10px !important;
 }
 
-/* Panah sort tidak mengganggu klik & tidak menambah lebar */
-.sortable::after { pointer-events: none; }
+/* panah sort */
+.sortable {
+  cursor: pointer;
+  position: relative;
+}
+.sortable::after {
+  content: "⇅";
+  font-size: 0.8em;
+  margin-left: 4px;
+  color: #666;
+  pointer-events: none;
+}
+
+/* ========== FOOTER ========== */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  font-size: 14px;
+  border-top: 1px solid #333;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-left img.x-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+
+.footer-right {
+  opacity: 0.8;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+/* swap logo sesuai tema */
+:root.light .footer-left img.x-logo {
+  content: url("assets/x-logo-dark.png");
+}
+:root:not(.light) .footer-left img.x-logo {
+  content: url("assets/x-logo-light.png");
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 728px) {
+  /* sembunyikan kolom selain Symbol, Name, Price, 24h */
+  .table thead th:nth-child(n+5),
+  .table tbody td:nth-child(n+5) {
+    display: none;
+  }
+}
