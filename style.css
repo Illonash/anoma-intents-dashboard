@@ -282,21 +282,21 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
    - tampilkan kolom inti saja
 ============================== */
 @media (max-width:720px){
-  .table thead th:nth-child(n+5),
-  .table tbody td:nth-child(n+5){ display:none; } /* hide mulai kolom 5 ke kanan */
-  .table thead th:nth-child(4),
-  .table tbody td:nth-child(4){ display:table-cell; } /* tetap tampilkan Price */
-}
-/* === Fix sinkronisasi header-body untuk kolom numerik === */
-.table thead th.num,
-.table tbody td.num {
-  padding-right: 18px;  /* samakan dengan ruang panah sort */
+  .table thead th.num {
+  text-align: right !important;
+  padding-right: 18px !important;
 }
 
-/* Pastikan padding kiri seragam */
+.table tbody td.num {
+  text-align: right !important;
+  padding-right: 18px !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" 1 !important;
+}
+
 .table thead th,
 .table tbody td {
-  padding-left: 10px;
+  padding-left: 10px !important;
 }
 
 /* Panah sort tidak mengganggu klik & tidak menambah lebar */
