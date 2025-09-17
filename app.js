@@ -48,56 +48,64 @@ const fmtPrice = (v)=> (v==null? "-" : (v>=1000? "$"+nf.format(v) : "$"+v));
 const fmtPct   = (v)=> (v==null? "-" : (v*1).toFixed(2) + "%");
 const isPos    = (v)=> v!=null && v >= 0;
 
-/* ---------- Data Loader (auto GH Pages + fallback) ---------- */
+// FINAL: loader multi-path + fallback + footer log
 async function loadData() {
   const isGh = location.hostname.endsWith("github.io");
   const repo = isGh ? `/${location.pathname.split("/")[1]}` : "";
-  const DATA_URL = `${location.origin}${repo}/assets/data/assets.json?v=${Date.now()}`;
 
-  const fallback = [
-    {
-      symbol: "BTC", name: "Bitcoin", price: 65000, change24h: -0.8,
-      marketCap: 1.28e12, fdv: 1.28e12, volume24h: 3.5e10,
-      sector: "Store of Value", roi1m: 5.3, roi1y: 40.1, tags: ["DeFi"],
-      logo: `${repo}/assets/logo-btc.png`
-    },
-    {
-      symbol: "ETH", name: "Ethereum", price: 3200, change24h: 2.1,
-      marketCap: 3.8e11, fdv: 3.8e11, volume24h: 1.8e10,
-      sector: "Smart Contract", roi1m: 6.7, roi1y: 55.0, tags: ["DeFi","AI"],
-      logo: `${repo}/assets/logo-eth.png`
-    },
-    {
-      symbol: "XAN", name: "Anoma Token", price: 1.25, change24h: 3.2,
-      marketCap: 1.5e9, fdv: 2.5e9, volume24h: 5.6e8,
-      sector: "Modular", roi1m: 12.5, roi1y: 85.3, tags: ["Anoma","ZK","Modular"],
-      logo: `${repo}/assets/logo-xan.png`
-    }
+  // Kandidat path yang sering bikin 404 di GH Pages
+  const candidates = [
+    `${location.origin}${repo}/assets/data/assets.json`,        // project pages (paling umum)
+    `${location.origin}/assets/data/assets.json`,               // root
+    new URL("assets/data/assets.json", location.href).href      // relatif
   ];
 
-  try {
-    console.log("[data] try:", DATA_URL);
-    const res = await fetch(DATA_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`fetch ${DATA_URL} -> ${res.status}`);
-    const arr = await res.json();
+  // Fallback minimal agar UI tetap hidup
+  const fallback = [
+    {symbol:"BTC", name:"Bitcoin",  price:65000, change24h:-0.8, marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:"Store of Value", roi1m:5.3, roi1y:40.1, tags:["DeFi"], logo:`${repo}/assets/logo-btc.png`},
+    {symbol:"ETH", name:"Ethereum", price:3200,  change24h: 2.1, marketCap:3.8e11,  fdv:3.8e11,  volume24h:1.8e10, sector:"Smart Contract", roi1m:6.7, roi1y:55.0, tags:["DeFi","AI"], logo:`${repo}/assets/logo-eth.png`},
+    {symbol:"XAN", name:"Anoma Token", price:1.25, change24h:3.2, marketCap:1.5e9,  fdv:2.5e9,   volume24h:5.6e8,  sector:"Modular", roi1m:12.5, roi1y:85.3, tags:["Anoma","ZK","Modular"], logo:`${repo}/assets/logo-xan.png`}
+  ];
 
-    state.data = (arr || []).map(a => ({
-      symbol: a.symbol,  name: a.name,
-      price: a.price,    change24h: a.change24h,
-      marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
-      sector: a.sector,  roi1m: a.roi1m, roi1y: a.roi1y,
-      tags: a.tags || [], badge: a.badge,
-      logo: a.logo ? (a.logo.startsWith("http") ? a.logo : `${repo}/${a.logo.replace(/^\/+/,"")}`) : ""
-    }));
+  // helper fetch
+  const tryFetch = async (url) => {
+    try {
+      const res = await fetch(`${url}?v=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
+  };
 
-    if (!state.data.length) {
-      console.warn("[data] JSON kosong, pakai fallback");
-      state.data = fallback;
+  let usedUrl = null;
+  for (const url of candidates) {
+    const arr = await tryFetch(url);
+    if (Array.isArray(arr) && arr.length) {
+      usedUrl = url;
+      state.data = arr.map(a => ({
+        symbol: a.symbol, name: a.name,
+        price: a.price, change24h: a.change24h,
+        marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
+        sector: a.sector, roi1m: a.roi1m, roi1y: a.roi1y,
+        tags: a.tags || [], badge: a.badge,
+        logo: a.logo
+          ? (a.logo.startsWith("http") ? a.logo : `${repo}/${a.logo.replace(/^\/+/,"")}`)
+          : ""
+      }));
+      break;
     }
-  } catch (err) {
-    console.error("[data] gagal:", err);
-    // Pakai fallback tapi JANGAN menyalakan empty banner di sini
+  }
+
+  if (!state.data || !state.data.length) {
+    console.warn("[data] semua kandidat gagal → pakai fallback");
     state.data = fallback;
+  }
+
+  // Tulis sumber data di footer
+  const log = document.getElementById("dataSourceLog");
+  if (log) {
+    log.textContent = usedUrl
+      ? `data source: ${usedUrl.replace(location.origin, "")}`
+      : `data source: fallback (assets/data/assets.json tidak ditemukan)`;
   }
 }
 
