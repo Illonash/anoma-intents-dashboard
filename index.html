@@ -53,41 +53,42 @@
       </div>
 
       <div class="table-wrap">
-        <table class="table" id="cryptoTable">
-          <!-- Kunci lebar kolom (harus sebelum THEAD) -->
-          <colgroup>
-            <col style="width:3%" />   <!-- star -->
-            <col style="width:6%" />   <!-- symbol -->
-            <col style="width:13%" />  <!-- name -->
-            <col style="width:8%" />   <!-- price -->
-            <col style="width:7%" />   <!-- 24h -->
-            <col style="width:11%" />  <!-- market cap -->
-            <col style="width:10%" />  <!-- fdv -->
-            <col style="width:10%" />  <!-- vol 24h -->
-            <col style="width:12%" />  <!-- sector -->
-            <col style="width:6%" />   <!-- roi 1m -->
-            <col style="width:6%" />   <!-- roi 1y -->
-            <col style="width:8%" />   <!-- tags -->
-          </colgroup>
+        <table id="cryptoTable" class="table">
+  <colgroup>
+    <col style="width:4%" />    <!-- ★ -->
+    <col style="width:7%" />    <!-- symbol -->
+    <col style="width:15%" />   <!-- name -->
+    <col style="width:9%" />    <!-- price -->
+    <col style="width:7%" />    <!-- 24h -->
+    <col style="width:11%" />   <!-- market cap -->
+    <col style="width:10%" />   <!-- fdv -->
+    <col style="width:10%" />   <!-- vol 24h -->
+    <col style="width:12%" />   <!-- sector -->
+    <col style="width:7%" />    <!-- roi 1m -->
+    <col style="width:7%" />    <!-- roi 1y -->
+    <col style="width:11%" />   <!-- tags -->
+  </colgroup>
 
-          <thead id="cryptoThead">
-            <tr>
-              <th>★</th>
-              <th class="sortable" data-key="symbol">Symbol</th>
-              <th class="sortable" data-key="name">Name</th>
-              <th class="num sortable" data-key="price">Price</th>
-              <th class="num sortable" data-key="change24h">24h</th>
-              <th class="num sortable" data-key="marketCap">Market Cap</th>
-              <th class="num sortable" data-key="fdv">FDV</th>
-              <th class="num sortable" data-key="volume24h">Vol 24h</th>
-              <th class="sortable" data-key="sector">Sector</th>
-              <th class="num sortable" data-key="roi1m">ROI 1M</th>
-              <th class="num sortable" data-key="roi1y">ROI 1Y</th>
-              <th>Tags</th>
-            </tr>
-          </thead>
-          <tbody id="cryptoTbody"></tbody>
-        </table>
+  <thead id="cryptoThead">
+    <tr>
+      <th>★</th>
+      <th class="sortable" data-key="symbol">Symbol</th>
+      <th class="sortable" data-key="name">Name</th>
+      <th class="sortable num" data-key="price">Price</th>
+      <th class="sortable num" data-key="change24h">24h</th>
+      <th class="sortable num" data-key="marketCap">Market Cap</th>
+      <th class="sortable num" data-key="fdv">FDV</th>
+      <th class="sortable num" data-key="volume24h">Vol 24h</th>
+      <th class="sortable" data-key="sector">Sector</th>
+      <th class="sortable num" data-key="roi1m">ROI 1M</th>
+      <th class="sortable num" data-key="roi1y">ROI 1Y</th>
+      <th>Tags</th>
+    </tr>
+  </thead>
+
+  <tbody id="cryptoTbody"></tbody>
+</table>
+
         <div id="cryptoEmpty" class="empty hidden">No results found.</div>
       </div>
 
