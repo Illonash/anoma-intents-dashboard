@@ -1,99 +1,27 @@
-/* =========================================================
-   Anoma Intents Dashboard — minimal demo data renderer
-   + Mini Apps: Token Swap & NFT Swap (simulated)
-   ========================================================= */
+/* =========================
+   Anoma Intents Dashboard - app.js (FINAL)
+   - Logo mapping BTC/ETH/BNB/XAN → /assets/logo-*.png
+   - Note pindah di bawah pager
+   ========================= */
 
-(function(){
-  const state = {
-    data: [],         // crypto list
-    page: 1,
-    pageSize: 10,
-    sortKey: 'marketCap',
-    sortDir: 'desc',
-    quick: '',        // 'gainers' | 'losers' | ''
-    watchOnly: false,
-    watch: new Set(JSON.parse(localStorage.getItem('watchlist')||'[]')),
-    theme: localStorage.getItem('theme') || 'dark'
-  };
+/* ---------- Helper DOM ---------- */
+const $  = (sel, root=document) => root.querySelector(sel);
+const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
 
-  /* ---------- utils ---------- */
-  const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
-  const fmtNum = n => n==null ? '-' :
-      (Math.abs(n)>=1e12? (n/1e12).toFixed(2)+'T':
-      Math.abs(n)>=1e9? (n/1e9).toFixed(2)+'B':
-      Math.abs(n)>=1e6? (n/1e6).toFixed(2)+'M':
-      Math.abs(n)>=1e3? (n/1e3).toFixed(2)+'K':
-      (''+n));
-  const fmtPrice = n => n==null?'-' : (n>=1000? '$'+fmtNum(n) : '$'+Number(n).toLocaleString());
-  const pct = n => n==null?'-' : (n>=0? '+' : '') + Number(n).toFixed(2) + '%';
+/* ---------- Data sources ---------- */
+const PATH_ASSETS_JSON = 'assets/data/assets.json';        // coins
+const PATH_SECTORS_JSON = 'assets/data/sectors.json';      // optional
+const PATH_FUND_JSON    = 'assets/data/fundraising.json';  // optional
 
-  function saveWatch(){
-    localStorage.setItem('watchlist', JSON.stringify(Array.from(state.watch)));
-  }
-  function setTheme(t){
-    state.theme = t;
-    document.documentElement.classList.toggle('light', t==='light');
-    document.documentElement.classList.toggle('dark', t!=='light');
-    localStorage.setItem('theme', t);
-  }
+// Fallback demo data (kalau fetch JSON gagal)
+const FALLBACK_COINS = [
+  { symbol:'BTC', name:'Bitcoin',  price:65000, change24h:-0.8,  marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'] },
+  { symbol:'ETH', name:'Ethereum', price:3200,  change24h:2.10,  marketCap:3.8e11, fdv:3.8e11, volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'] },
+  { symbol:'BNB', name:'BNB',      price:590,   change24h:-1.20, marketCap:9.1e10, fdv:9.1e10, volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'] },
+  { symbol:'XAN', name:'Anoma',    price:1.25,  change24h:3.20,  marketCap:1.5e9,  fdv:2.5e9,  volume24h:5.6e8,  sector:'Modular',       roi1m:12.5, roi1y:85.3, tags:['Anoma','ZK','Modular'] }
+];
 
-  /* ---------- data loading ---------- */
-  async function loadData(){
-    // data demo
-    // kamu bisa tambahkan item lain ke assets/data/assets.json
-    // format: symbol, name, price, change24h, marketCap, fdv, volume24h, sector, roi1m, roi1y, tags[], logo
-    const url = 'assets/data/assets.json';
-    try{
-      const res = await fetch(url, {cache:'no-store'});
-      if(!res.ok) throw new Error(res.status+' '+res.statusText);
-      const arr = await res.json();
-      state.data = arr;
-    }catch(e){
-      // fallback minimal (kalau fetch 404)
-      state.data = [
-        {symbol:'BTC', name:'Bitcoin', price:65000, change24h:-0.8, marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'], logo:'assets/coins/btc.png'},
-        {symbol:'ETH', name:'Ethereum', price:3200, change24h:2.1, marketCap:3.8e11, fdv:3.8e11, volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'], logo:'assets/coins/eth.png'},
-        {symbol:'BNB', name:'BNB', price:590, change24h:-1.2, marketCap:9.1e10, fdv:9.1e10, volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'], logo:'assets/coins/bnb.png'},
-        {symbol:'XAN', name:'Anoma', price:1.25, change24h:3.2, marketCap:1.5e9, fdv:2.5e9, volume24h:5.6e8, sector:'Modular', roi1m:12.5, roi1y:85.3, tags:['Anoma','ZK','Modular'], logo:'assets/logo-xan.png'}
-      ];
-    }
-  }
-
-  /* ---------- filtering & sorting ---------- */
-  function filtered(){
-    let rows = state.data.slice();
-
-    // search
-    const q = ($('#q').value||'').trim().toLowerCase();
-    if(q){
-      rows = rows.filter(a =>
-        a.symbol.toLowerCase().includes(q) ||
-        (a.name||'').toLowerCase().includes(q) ||
-        (a.tags||[]).join(' ').toLowerCase().includes(q)
-      );
-    }
-
-    // chip
-    if(state.quick==='gainers'){ rows.sort((a,b)=>(b.change24h||0)-(a.change24h||0)); }
-    else if(state.quick==='losers'){ rows.sort((a,b)=>(a.change24h||0)-(b.change24h||0)); }
-
-    // watch only
-    if(state.watchOnly){ rows = rows.filter(a=>state.watch.has(a.symbol)); }
-
-    // sort
-    const k = state.sortKey, dir = state.sortDir==='desc'? -1: 1;
-    rows.sort((a,b)=>{
-      const x = a[k], y = b[k];
-      if(x==null && y==null) return 0;
-      if(x==null) return 1;
-      if(y==null) return -1;
-      if(typeof x==='string') return x.localeCompare(y)*dir;
-      return (x>y?1:x<y?-1:0)*dir;
-    });
-    return rows;
-  }
-
+/* ---------- LOGO MAPPING (sesuai repo kamu) ---------- */
 const COIN_LOGO = {
   BTC: 'assets/logo-btc.png',
   ETH: 'assets/logo-eth.png',
@@ -101,205 +29,350 @@ const COIN_LOGO = {
   XAN: 'assets/logo-xan.png'
 };
 
-  /* ---------- render table ---------- */
-  function render(){
-    const rows = filtered();
+/* ---------- State ---------- */
+const state = {
+  coins: [],
+  filtered: [],
+  pageSize: 10,
+  page: 1,
+  sortKey: 'marketCap',
+  sortDir: 'desc',
+  search: '',
+  watchlistOnly: false,
+  watchlist: new Set(JSON.parse(localStorage.getItem('watchlist') || '[]'))
+};
 
-    // pagination
-    const total = rows.length;
-    const pages = Math.max(1, Math.ceil(total / state.pageSize));
-    state.page = Math.min(Math.max(1, state.page), pages);
-    const start = (state.page-1)*state.pageSize;
-    const slice = rows.slice(start, start+state.pageSize);
+/* ---------- Fetch JSON (aman untuk GitHub Pages) ---------- */
+async function fetchJSON(url) {
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`${url} ${res.status}`);
+    return await res.json();
+  } catch (e) {
+    console.warn('[Demo Warning] fetch gagal:', e.message);
+    return null;
+  }
+}
 
-    const tb = $('#cryptoTbody');
-    tb.innerHTML = '';
+async function loadData() {
+  const assets = await fetchJSON(PATH_ASSETS_JSON);
+  state.coins = Array.isArray(assets) && assets.length ? assets : FALLBACK_COINS;
+  applyFilters();
+  renderAll();
+}
 
-    slice.forEach(a=>{
-      const tr = document.createElement('tr');
+/* ---------- Filtering & Sorting ---------- */
+function applyFilters() {
+  let rows = [...state.coins];
 
-      // star
-      const tdStar = document.createElement('td');
-      const btn = document.createElement('button');
-      btn.className = 'btn mini';
-      btn.textContent = state.watch.has(a.symbol)? '－' : '＋';
-      btn.addEventListener('click', ev=>{
-        ev.stopPropagation();
-        if(state.watch.has(a.symbol)) state.watch.delete(a.symbol); else state.watch.add(a.symbol);
-        saveWatch(); render();
-      });
-      tdStar.appendChild(btn);
+  // Search
+  if (state.search && state.search.trim()) {
+    const q = state.search.trim().toLowerCase();
+    rows = rows.filter(c =>
+      c.symbol.toLowerCase().includes(q) ||
+      (c.name||'').toLowerCase().includes(q) ||
+      (Array.isArray(c.tags) && c.tags.join(' ').toLowerCase().includes(q))
+    );
+  }
 
-      // symbol
-      <img src="${COIN_LOGO[coin.symbol] || ''}" alt="${coin.symbol}" class="coin-logo" />
+  // Watchlist only
+  if (state.watchlistOnly) {
+    rows = rows.filter(c => state.watchlist.has(c.symbol));
+  }
 
-      // name (logo + text)
-      const tdName = document.createElement('td');
-      const wrap = document.createElement('div');
-      if(a.logo){ const img = new Image(); img.src = a.logo; img.width=18; img.height=18; img.style.borderRadius='4px'; wrap.appendChild(img); }
-      const nm = document.createElement('span'); nm.textContent = a.symbol==='XAN' ? 'Anoma' : (a.name||'-'); wrap.appendChild(nm);
-      tdName.appendChild(wrap);
+  // Sort
+  const dir = state.sortDir === 'asc' ? 1 : -1;
+  const key = state.sortKey;
+  rows.sort((a,b) => {
+    const av = a[key] ?? 0;
+    const bv = b[key] ?? 0;
+    if (typeof av === 'string' && typeof bv === 'string') return av.localeCompare(bv) * dir;
+    return (av - bv) * dir;
+  });
 
-      // numerics
-      const tdPrice = document.createElement('td'); tdPrice.className = 'num'; tdPrice.textContent = fmtPrice(a.price);
-      const tdChg   = document.createElement('td'); tdChg.className = 'num'; tdChg.textContent = pct(a.change24h);
-      tdChg.style.color = (a.change24h||0) >= 0 ? 'var(--green)' : '#f87171';
-      const tdMc    = document.createElement('td'); tdMc.className = 'num'; tdMc.textContent = fmtNum(a.marketCap);
-      const tdFdv   = document.createElement('td'); tdFdv.className = 'num'; tdFdv.textContent = fmtNum(a.fdv);
-      const tdVol   = document.createElement('td'); tdVol.className = 'num'; tdVol.textContent = fmtNum(a.volume24h);
+  state.filtered = rows;
+  // jaga-jaga agar current page valid
+  const totalPages = Math.max(1, Math.ceil(rows.length / state.pageSize));
+  if (state.page > totalPages) state.page = totalPages;
+}
 
-      // sector
-      const tdSec   = document.createElement('td'); tdSec.textContent = a.sector || '-';
+/* ---------- Formatters ---------- */
+const nf0 = new Intl.NumberFormat('en-US');
+const nf2 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const nfK = (n) => {
+  if (n == null || isNaN(n)) return '-';
+  if (n >= 1e12) return `${nf2.format(n/1e12)}T`;
+  if (n >= 1e9)  return `${nf2.format(n/1e9)}B`;
+  if (n >= 1e6)  return `${nf2.format(n/1e6)}M`;
+  if (n >= 1e3)  return `${nf2.format(n/1e3)}K`;
+  return nf2.format(n);
+};
+const pct = (v) => (v==null || isNaN(v)) ? '-' : `${v>=0?'+':''}${nf2.format(v)}%`;
 
-      // ROI
-      const tdR1m = document.createElement('td'); tdR1m.className='num'; tdR1m.textContent = pct(a.roi1m);
-      const tdR1y = document.createElement('td'); tdR1y.className='num'; tdR1y.textContent = pct(a.roi1y);
+/* ---------- Render: Table ---------- */
+function renderTable() {
+  const tbody = $('#cryptoTbody');
+  const table = $('#cryptoTable');
+  if (!tbody || !table) return;
 
-      // tags
-      const tdTags = document.createElement('td'); tdTags.textContent = (a.tags||[]).join(', ');
+  tbody.innerHTML = '';
 
-      tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFdv, tdVol, tdSec, tdR1m, tdR1y, tdTags);
+  // slicing by page
+  const start = (state.page - 1) * state.pageSize;
+  const slice = state.filtered.slice(start, start + state.pageSize);
 
-      // row click → (optional) detail modal — untuk demo cukup highlight
-      tr.addEventListener('click', ()=> {
-        // highlight baris sebentar
-        tr.style.background = 'rgba(229,57,53,.08)';
-        setTimeout(()=> tr.style.background='', 300);
-      });
+  if (!slice.length) {
+    // kalau kosong, tetap bersihkan dan render pager + note
+    renderPagerAndNote(table);
+    return;
+  }
 
-      tb.appendChild(tr);
+  slice.forEach(coin => {
+    const tr = document.createElement('tr');
+    tr.style.cursor = 'pointer';
+    if (coin.symbol === 'XAN') tr.classList.add('highlight-xan');
+
+    // star / watchlist cell
+    const tdStar = document.createElement('td');
+    const b = document.createElement('button');
+    b.className = `star ${state.watchlist.has(coin.symbol) ? 'active' : ''}`;
+    b.textContent = '★';
+    b.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      if (state.watchlist.has(coin.symbol)) state.watchlist.delete(coin.symbol);
+      else state.watchlist.add(coin.symbol);
+      localStorage.setItem('watchlist', JSON.stringify([...state.watchlist]));
+      applyFilters();
+      renderAll();
+    });
+    tdStar.appendChild(b);
+
+    // symbol
+    const tdSym = document.createElement('td');
+    tdSym.textContent = coin.symbol;
+
+    // name (+ logo)
+    const tdName = document.createElement('td');
+    const wrap = document.createElement('div');
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'center';
+    wrap.style.gap = '8px';
+
+    const logoSrc = COIN_LOGO[coin.symbol] || '';
+    if (logoSrc) {
+      const img = document.createElement('img');
+      img.src = logoSrc;
+      img.alt = `${coin.symbol} logo`;
+      img.className = 'coin-logo';
+      wrap.appendChild(img);
+    }
+    const sp = document.createElement('span');
+    sp.textContent = coin.name || '';
+    wrap.appendChild(sp);
+    tdName.appendChild(wrap);
+
+    // price
+    const tdPrice = document.createElement('td');
+    tdPrice.className = 'num';
+    tdPrice.textContent = `$${nfK(coin.price)}`;
+
+    // 24h
+    const td24 = document.createElement('td');
+    td24.className = 'num pctClass';
+    td24.textContent = pct(coin.change24h);
+
+    // mcap
+    const tdMc = document.createElement('td');
+    tdMc.className = 'num';
+    tdMc.textContent = nfK(coin.marketCap);
+
+    // fdv
+    const tdFdv = document.createElement('td');
+    tdFdv.className = 'num';
+    tdFdv.textContent = nfK(coin.fdv);
+
+    // vol24h
+    const tdVol = document.createElement('td');
+    tdVol.className = 'num';
+    tdVol.textContent = nfK(coin.volume24h);
+
+    // sector (teks pendek supaya gak tabrakan)
+    const tdSector = document.createElement('td');
+    tdSector.className = 'ellipsis';
+    tdSector.textContent = coin.sector || '-';
+    tdSector.title = coin.sector || '';
+
+    // roi 1m
+    const tdR1m = document.createElement('td');
+    tdR1m.className = 'num pctClass';
+    tdR1m.textContent = pct(coin.roi1m);
+
+    // roi 1y
+    const tdR1y = document.createElement('td');
+    tdR1y.className = 'num pctClass';
+    tdR1y.textContent = pct(coin.roi1y);
+
+    // tags
+    const tdTags = document.createElement('td');
+    const tags = Array.isArray(coin.tags) ? coin.tags : [];
+    tdTags.className = 'ellipsis';
+    tdTags.textContent = tags.join(', ') || '-';
+    tdTags.title = tags.join(', ') || '';
+
+    // append
+    tr.append(tdStar, tdSym, tdName, tdPrice, td24, tdMc, tdFdv, tdVol, tdSector, tdR1m, tdR1y, tdTags);
+
+    // click row → (kalau ada detail handler kamu)
+    tr.addEventListener('click', () => {
+      // openAssetDetail(coin)  // kalau kamu sudah punya
     });
 
-    // pager text
-    $('#pageInfo').textContent = `${total? (start+1):0}–${Math.min(start+state.pageSize,total)} of ${total}`;
+    tbody.appendChild(tr);
+  });
+
+  // setelah tbody diisi → render pager + note (note DI BAWAH pager)
+  renderPagerAndNote(table);
+}
+
+/* ---------- Render: Pager + Note (note di bawah pager) ---------- */
+function renderPagerAndNote(tableEl) {
+  // container yang menampung table → taruh pager & note di sesudahnya
+  const holder = tableEl.parentElement;
+
+  // ----- pager -----
+  let pager = $('#cryptoPager', holder);
+  if (!pager) {
+    pager = document.createElement('div');
+    pager.id = 'cryptoPager';
+    pager.className = 'pager';
+    holder.appendChild(pager);
   }
+  pager.innerHTML = '';
 
-  /* ---------- events ---------- */
-  function bindEvents(){
-    // search
-    $('#q').addEventListener('input', ()=>{ state.page=1; render(); });
+  // tombol pager
+  const totalRows = state.filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalRows / state.pageSize));
 
-    // watch only
-    $('#onlyWatch').addEventListener('change', (e)=>{ state.watchOnly = e.target.checked; state.page=1; render(); });
+  const mkBtn = (label, disabled, onClick) => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.disabled = !!disabled;
+    b.addEventListener('click', onClick);
+    return b;
+  };
 
-    // sort select
-    $('#sorter').addEventListener('change', (e)=>{
-      const [k, dir] = e.target.value.split('-');
-      state.sortKey = k; state.sortDir = dir; state.page=1; render();
-    });
+  pager.appendChild( mkBtn('« First', state.page===1, ()=>{ state.page=1; renderAll(); }) );
+  pager.appendChild( mkBtn('‹ Prev',  state.page===1, ()=>{ state.page=Math.max(1, state.page-1); renderAll(); }) );
+  const info = document.createElement('span');
+  info.textContent = ` ${Math.min(totalRows, (state.page-1)*state.pageSize+1)}–${Math.min(totalRows, state.page*state.pageSize)} of ${totalRows} `;
+  info.style.margin = '0 6px';
+  pager.appendChild(info);
+  pager.appendChild( mkBtn('Next ›',  state.page===totalPages, ()=>{ state.page=Math.min(totalPages, state.page+1); renderAll(); }) );
+  pager.appendChild( mkBtn('Last »',  state.page===totalPages, ()=>{ state.page=totalPages; renderAll(); }) );
 
-    // chips
-    $$('.chip').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const v = btn.dataset.chip;
-        state.quick = (state.quick===v)? '' : v;
-        $$('.chip').forEach(c=>c.classList.toggle('active', c.dataset.chip===state.quick));
-        state.page=1; render();
-      });
-    });
+  // page size select
+  const sel = document.createElement('select');
+  [10,20,50].forEach(n=>{
+    const opt=document.createElement('option');
+    opt.value=n; opt.textContent=n;
+    if (n===state.pageSize) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', ()=>{
+    state.pageSize = +sel.value;
+    state.page = 1;
+    renderAll();
+  });
+  sel.style.marginLeft='8px';
+  pager.appendChild(sel);
 
-    // pager
-    $('#first').onclick = ()=>{ state.page=1; render(); };
-    $('#prev').onclick  = ()=>{ state.page=Math.max(1,state.page-1); render(); };
-    $('#next').onclick  = ()=>{ state.page=state.page+1; render(); };
-    $('#last').onclick  = ()=>{ state.page=9999; render(); };
-    $('#pageSize').addEventListener('change', e=>{ state.pageSize=+e.target.value; state.page=1; render(); });
-
-    // theme
-    $('#btnTheme').addEventListener('click', ()=> setTheme(state.theme==='dark' ? 'light' : 'dark'));
+  // ----- note (DIBAWAH pager) -----
+  let note = $('#demoNote', holder);
+  if (!note) {
+    note = document.createElement('div');
+    note.id = 'demoNote';
+    note.className = 'note-text';
+    holder.appendChild(note);
   }
+  note.textContent = 'note: demo only, data is simulated for the Anoma intents dashboard.';
+}
 
-  /* ---------- mini apps ---------- */
-  function allSymbols(){
-    return state.data.map(x=>x.symbol);
-  }
-  function getPrice(sym){
-    const f = state.data.find(x=>x.symbol===sym);
-    return f? (f.price||0) : 0;
-  }
-  function fillTokenSelects(){
-    const opts = allSymbols();
-    const fill = (sel, def) => {
-      sel.innerHTML = opts.map(s=>`<option ${s===def?'selected':''}>${s}</option>`).join('');
-    };
-    fill($('#swapFrom'),'USDC' in opts ? 'USDC' : (opts[1]||opts[0]));
-    fill($('#swapTo'),  'ETH'  in opts ? 'ETH'  : (opts[0]||''));
-  }
-
-  function parseIntentText(txt){
-    // sangat sederhana: "convert 100 usdc to eth"
-    const m = /(\d+(\.\d+)?)\s*([a-z0-9]+)\s*(to|→)\s*([a-z0-9]+)/i.exec(txt||'');
-    if(!m) return null;
-    return { amount: parseFloat(m[1]), from:m[3].toUpperCase(), to:m[5].toUpperCase() };
-  }
-
-  function bindSwap(){
-    fillTokenSelects();
-
-    $('#swapForm').addEventListener('submit', (e)=>{
-      e.preventDefault();
-
-      // parse intent text jika ada
-      const parsed = parseIntentText($('#swapIntent').value);
-      let amount = +$('#swapAmount').value;
-      let from = $('#swapFrom').value;
-      let to   = $('#swapTo').value;
-
-      if(parsed){
-        amount = parsed.amount || amount;
-        from = parsed.from || from;
-        to   = parsed.to   || to;
-        $('#swapAmount').value = amount;
-        $('#swapFrom').value = from;
-        $('#swapTo').value = to;
-      }
-
-      const pFrom = getPrice(from) || 1;
-      const pTo   = getPrice(to)   || 1;
-      const out = (amount * pFrom) / pTo;
-
-      $('#swapResult').textContent =
-        `Simulated: ${amount} ${from} ≈ ${out.toFixed(6)} ${to}  (px: ${fmtPrice(pFrom)} → ${fmtPrice(pTo)})`;
-    });
-
-    $('#swapForm').addEventListener('reset', ()=>{
-      $('#swapResult').textContent = '';
+/* ---------- Render: Topbar Controls (search, watchlist, sort dll) ---------- */
+function bindTopbar() {
+  const search = $('#globalSearch');
+  if (search) {
+    search.addEventListener('input', (e)=>{
+      state.search = e.target.value;
+      state.page = 1;
+      applyFilters();
+      renderAll();
     });
   }
 
-  function bindNFT(){
-    $('#nftForm').addEventListener('submit', (e)=>{
-      e.preventDefault();
-      const col = $('#nftCollection').value || 'Unknown';
-      const id  = $('#nftId').value || '#0';
-      const tgt = $('#nftTarget').value || '-';
-      const fc  = $('#nftFromChain').value;
-      const tc  = $('#nftToChain').value;
-
-      $('#nftResult').textContent =
-        `Simulated: Swap NFT ${col} ${id} on ${fc} → ${tc} for ${tgt}.`;
+  const chk = $('#watchOnly');
+  if (chk) {
+    chk.addEventListener('change', ()=>{
+      state.watchlistOnly = chk.checked;
+      state.page = 1;
+      applyFilters();
+      renderAll();
     });
-    $('#nftForm').addEventListener('reset', ()=> $('#nftResult').textContent='');
   }
 
-  /* ---------- init ---------- */
-  (async function init(){
-    // theme
-    setTheme(state.theme);
+  const sortSel = $('#sortSelect');
+  if (sortSel) {
+    sortSel.addEventListener('change', ()=>{
+      // value contoh: "marketCap:desc"
+      const [k,dir] = sortSel.value.split(':');
+      state.sortKey = k || 'marketCap';
+      state.sortDir = dir || 'desc';
+      state.page = 1;
+      applyFilters();
+      renderAll();
+    });
+  }
 
-    // load + render
-    await loadData();
-    bindEvents();
-    render();
+  // tombol Top Gainers / Top Losers bila ada
+  const btnG = $('#btnTopGainers');
+  const btnL = $('#btnTopLosers');
+  if (btnG) btnG.addEventListener('click', ()=>{
+    state.search=''; if (search) search.value='';
+    state.sortKey='change24h'; state.sortDir='desc'; state.page=1;
+    applyFilters(); renderAll();
+  });
+  if (btnL) btnL.addEventListener('click', ()=>{
+    state.search=''; if (search) search.value='';
+    state.sortKey='change24h'; state.sortDir='asc'; state.page=1;
+    applyFilters(); renderAll();
+  });
+}
 
-    // mini apps
-    bindSwap();
-    bindNFT();
+/* ---------- Theme (opsional) ---------- */
+function bindThemeToggle() {
+  const btn = $('#themeToggle');
+  if (!btn) return;
+  const root = document.documentElement;
+  const apply = (mode) => {
+    root.classList.toggle('light', mode==='light');
+    localStorage.setItem('themeMode', mode);
+    btn.textContent = 'Theme';
+  };
+  let saved = localStorage.getItem('themeMode') || 'dark';
+  apply(saved);
+  btn.addEventListener('click', ()=>{
+    saved = (saved==='dark') ? 'light' : 'dark';
+    apply(saved);
+  });
+}
 
-    // sync UI default
-    $('#onlyWatch').checked = state.watchOnly;
-    $('#sorter').value = `${state.sortKey}-${state.sortDir}`;
-    $('#pageSize').value = state.pageSize;
-  })();
+/* ---------- Render All ---------- */
+function renderAll() {
+  renderTable();
+}
 
-})();
+/* ---------- INIT ---------- */
+window.addEventListener('DOMContentLoaded', async ()=>{
+  bindTopbar();
+  bindThemeToggle();
+  await loadData();
+});
