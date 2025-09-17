@@ -131,7 +131,7 @@ const COIN_LOGO = {
       tdStar.appendChild(btn);
 
       // symbol
-      const tdSym = document.createElement('td'); tdSym.textContent = a.symbol;
+      <img src="${COIN_LOGO[coin.symbol] || ''}" alt="${coin.symbol}" class="coin-logo" />
 
       // name (logo + text)
       const tdName = document.createElement('td');
