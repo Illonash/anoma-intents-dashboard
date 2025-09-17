@@ -83,30 +83,6 @@ function applyFilterSort(){
   state.filtered = rows;
 }
 
-  // topbar controls
-  const topSearch = document.getElementById("topSearch");
-  const themeBtn  = document.getElementById("themeBtn");
-
-  if (topSearch) {
-    // sinkronkan dengan search utama di toolbar
-    topSearch.addEventListener("input", ()=>{
-      searchInput.value = topSearch.value;
-      state.page = 1; render();
-    });
-    // kalau user ketik di toolbar, ikutkan ke top bar juga
-    searchInput.addEventListener("input", ()=>{
-      if (topSearch.value !== searchInput.value) topSearch.value = searchInput.value;
-    });
-  }
-
-  if (themeBtn) {
-    themeBtn.addEventListener("click", ()=>{
-      document.documentElement.classList.toggle("light");
-      // (opsional) kalau kamu punya stylesheet tema terang,
-      // di sini tinggal switch variable CSS. Default kita cukup toggle class.
-    });
-  }
-
 // ===== Render
 function render(){
   applyFilterSort();
