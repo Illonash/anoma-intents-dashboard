@@ -1,164 +1,322 @@
-/* =========================
-   Anoma Intents Dashboard - app.js (FINAL)
-   ========================= */
+/* Anoma Intents Dashboard – app.js (final) */
 
-/* ---------- Helpers ---------- */
-const $  = (sel, root=document) => root.querySelector(sel);
+/* -------------------------
+   DOM hooks
+------------------------- */
+const $ = (s, p = document) => p.querySelector(s);
+const $$ = (s, p = document) => [...p.querySelectorAll(s)];
 
-/* ---------- Data & State ---------- */
-const PATH_ASSETS_JSON = 'assets/data/assets.json';
+const cryptoTable = $("#cryptoTable");
+const cryptoHead = $("#cryptoThead");
+const cryptoBody = $("#cryptoTbody");
+const cryptoEmpty = $("#cryptoEmpty");
 
-const FALLBACK_COINS = [
-  { symbol:'BTC', name:'Bitcoin',  price:65000, change24h:-0.8,  marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'] },
-  { symbol:'ETH', name:'Ethereum', price:3200,  change24h:2.10,  marketCap:3.8e11,  fdv:3.8e11,  volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'] },
-  { symbol:'BNB', name:'BNB',      price:590,   change24h:-1.20, marketCap:9.1e10,  fdv:9.1e10,  volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'] },
-  { symbol:'XAN', name:'Anoma',    price:1.25,  change24h:3.20,  marketCap:1.5e9,   fdv:2.5e9,   volume24h:5.6e8,  sector:'Modular',       roi1m:12.5,roi1y:85.3, tags:['Anoma','ZK','Modular'] }
-];
+const searchBox = $("#searchBox");
+const sortSelect = $("#sortSelect");
+const filterWatchlist = $("#filterWatchlist");
+const btnTopGainers = $("#btnTopGainers");
+const btnTopLosers = $("#btnTopLosers");
 
-const COIN_LOGO = {
-  BTC: 'assets/logo-btc.png',
-  ETH: 'assets/logo-eth.png',
-  BNB: 'assets/logo-bnb.png',
-  XAN: 'assets/logo-xan.png'
+const pager = {
+  root: $("#pager"),
+  info: $("#pageInfo"),
+  first: $("#btnFirst"),
+  prev: $("#btnPrev"),
+  next: $("#btnNext"),
+  last: $("#btnLast"),
+  size: $("#pageSize"),
 };
 
-const state = {
-  coins: [],
-  filtered: [],
-  pageSize: 10,
-  page: 1,
-  sortKey: 'marketCap',
-  sortDir: 'desc',
-  search: ''
+/* -------------------------
+   State
+------------------------- */
+let allAssets = [];     // full dataset
+let viewAssets = [];    // filtered+sorted
+let page = 1;
+let pageSize = 10;
+const watchlist = new Set(JSON.parse(localStorage.getItem("watchlist") || "[]"));
+
+/* -------------------------
+   Helpers
+------------------------- */
+
+// logo mapping (pakai nama file yang sudah kamu upload di /assets)
+const logoMap = {
+  BTC: "assets/logo-btc.png",
+  ETH: "assets/logo-eth.png",
+  BNB: "assets/logo-bnb.png",
+  XAN: "assets/logo-xan.png",
 };
 
-/* ---------- Fetch ---------- */
-async function fetchJSON(url) {
-  try {
-    const res = await fetch(url, { cache: 'no-store' });
-    if (!res.ok) throw new Error(res.status);
-    return await res.json();
-  } catch { return null; }
+const fmt = {
+  num(n) {
+    if (n == null || isNaN(n)) return "-";
+    if (Math.abs(n) >= 1e12) return (n / 1e12).toFixed(2) + "T";
+    if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
+    if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + "K";
+    return String(Math.round(n));
+  },
+  usd(n) {
+    if (n == null || isNaN(n)) return "-";
+    if (n >= 1000) return "$" + this.num(n);
+    return "$" + n.toLocaleString();
+  },
+  pct(n) {
+    if (n == null || isNaN(n)) return "-";
+    const sign = n > 0 ? "+" : "";
+    return sign + n.toFixed(2) + "%";
+  },
+};
+
+function persistWatchlist() {
+  localStorage.setItem("watchlist", JSON.stringify([...watchlist]));
 }
 
-async function loadData() {
-  const data = await fetchJSON(PATH_ASSETS_JSON);
-  state.coins = Array.isArray(data) && data.length ? data : FALLBACK_COINS;
-  applyFilters();
-  renderAll();
-}
-
-/* ---------- Filter & Sort ---------- */
 function applyFilters() {
-  let rows = [...state.coins];
+  const q = (searchBox.value || "").trim().toLowerCase();
 
-  if (state.search.trim()) {
-    const q = state.search.toLowerCase();
-    rows = rows.filter(c =>
-      c.symbol.toLowerCase().includes(q) ||
-      (c.name||'').toLowerCase().includes(q) ||
-      (Array.isArray(c.tags) && c.tags.join(' ').toLowerCase().includes(q))
-    );
-  }
-
-  const dir = state.sortDir === 'asc' ? 1 : -1;
-  rows.sort((a,b)=>{
-    const av=a[state.sortKey]??0, bv=b[state.sortKey]??0;
-    if (typeof av==='string') return av.localeCompare(bv)*dir;
-    return (av-bv)*dir;
+  viewAssets = allAssets.filter(a => {
+    if (filterWatchlist.checked && !watchlist.has(a.symbol)) return false;
+    if (!q) return true;
+    // cari di symbol, name, sector, tags
+    const hay = `${a.symbol} ${a.name} ${a.sector} ${(a.tags || []).join(" ")}`.toLowerCase();
+    return hay.includes(q);
   });
 
-  state.filtered = rows;
-  const totalPages = Math.max(1, Math.ceil(rows.length/state.pageSize));
-  if (state.page > totalPages) state.page = totalPages;
+  // top gainers/losers quick filter (optional; only when button toggled)
+  if (btnTopGainers?.dataset.active === "1") {
+    viewAssets = [...viewAssets].sort((a, b) => (b.change24h ?? -Infinity) - (a.change24h ?? -Infinity)).slice(0, 10);
+  }
+  if (btnTopLosers?.dataset.active === "1") {
+    viewAssets = [...viewAssets].sort((a, b) => (a.change24h ?? Infinity) - (b.change24h ?? Infinity)).slice(0, 10);
+  }
+
+  // sorting
+  const key = sortSelect.value;
+  const desc = key.endsWith("(desc)");
+  const sortKey = key.replace(" (desc)", "").replace(" (asc)", "");
+
+  const getter = (a) => {
+    switch (sortKey) {
+      case "Market Cap": return a.marketCap;
+      case "Price": return a.price;
+      case "24h": return a.change24h;
+      case "FDV": return a.fdv;
+      case "Vol 24h": return a.volume24h;
+      case "ROI 1M": return a.roi1m;
+      case "ROI 1Y": return a.roi1y;
+      default: return a.marketCap;
+    }
+  };
+
+  viewAssets.sort((a, b) => {
+    const av = getter(a) ?? -Infinity;
+    const bv = getter(b) ?? -Infinity;
+    return desc ? (bv - av) : (av - bv);
+  });
+
+  // reset halaman jika perlu
+  page = 1;
 }
 
-/* ---------- Render Table ---------- */
-function renderTable() {
-  const tbody = $('#cryptoTbody');
-  const table = $('#cryptoTable');
-  tbody.innerHTML = '';
+function getSlice() {
+  const start = (page - 1) * pageSize;
+  return viewAssets.slice(start, start + pageSize);
+}
 
-  const start = (state.page-1)*state.pageSize;
-  const slice = state.filtered.slice(start, start+state.pageSize);
+/* -------------------------
+   Render
+------------------------- */
+function renderEmpty(msg = "No results found.") {
+  cryptoBody.innerHTML = "";
+  cryptoEmpty.textContent = msg;
+  cryptoEmpty.removeAttribute("hidden");
+  pager.info.textContent = "0 of 0";
+}
 
-  slice.forEach(coin=>{
-    const tr = document.createElement('tr');
+function renderPager() {
+  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
+  page = Math.min(page, totalPages);
+
+  pager.info.textContent = `${(viewAssets.length ? ( (page-1)*pageSize + 1 ) : 0)}–${Math.min(page*pageSize, viewAssets.length)} of ${viewAssets.length}`;
+  pager.first.disabled = page <= 1;
+  pager.prev.disabled  = page <= 1;
+  pager.next.disabled  = page >= totalPages;
+  pager.last.disabled  = page >= totalPages;
+}
+
+function renderCrypto() {
+  const slice = getSlice();
+
+  if (!slice.length) {
+    renderEmpty(viewAssets.length ? "No items on this page." : "No results found.");
+    return;
+  }
+  cryptoEmpty.setAttribute("hidden", "");
+
+  cryptoBody.innerHTML = "";
+  slice.forEach(a => {
+    const tr = document.createElement("tr");
+    tr.style.cursor = "pointer";
+
+    // star (watchlist)
+    const tdStar = document.createElement("td");
+    const star = document.createElement("button");
+    star.className = "star" + (watchlist.has(a.symbol) ? " active" : "");
+    star.type = "button";
+    star.title = "Watchlist";
+    star.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (watchlist.has(a.symbol)) watchlist.delete(a.symbol); else watchlist.add(a.symbol);
+      persistWatchlist();
+      renderCrypto();
+    });
+    tdStar.appendChild(star);
 
     // symbol
-    const tdSym = document.createElement('td');
-    tdSym.textContent = coin.symbol;
+    const tdSymbol = document.createElement("td");
+    tdSymbol.textContent = a.symbol;
 
     // name + logo
-    const tdName = document.createElement('td');
-    const wrap = document.createElement('div');
-    wrap.style.display='flex'; wrap.style.alignItems='center'; wrap.style.gap='8px';
+    const tdName = document.createElement("td");
+    const wrap = document.createElement("div");
+    wrap.style.display = "flex";
+    wrap.style.alignItems = "center";
+    wrap.style.gap = "8px";
 
-    if (COIN_LOGO[coin.symbol]) {
-      const img = document.createElement('img');
-      img.src = COIN_LOGO[coin.symbol];
-      img.alt = coin.symbol;
-      img.className = 'coin-logo';
+    if (logoMap[a.symbol]) {
+      const img = document.createElement("img");
+      img.src = logoMap[a.symbol];
+      img.alt = a.symbol;
+      img.className = "token-logo";
       wrap.appendChild(img);
     }
-    const sp = document.createElement('span');
-    sp.textContent = coin.name;
-    wrap.appendChild(sp);
+    const nm = document.createElement("span");
+    nm.textContent = a.name;
+    wrap.appendChild(nm);
     tdName.appendChild(wrap);
 
-    // price
-    const tdPrice = document.createElement('td');
-    tdPrice.className='num';
-    tdPrice.textContent = `$${coin.price}`;
+    // numeric cols
+    const tdPrice = document.createElement("td");
+    tdPrice.className = "num";
+    tdPrice.textContent = fmt.usd(a.price);
 
-    tr.append(tdSym, tdName, tdPrice);
-    tbody.appendChild(tr);
+    const tdCh24 = document.createElement("td");
+    tdCh24.className = "num" + (a.change24h > 0 ? " up" : a.change24h < 0 ? " down" : "");
+    tdCh24.textContent = fmt.pct(a.change24h);
+
+    const tdMcap = document.createElement("td");
+    tdMcap.className = "num";
+    tdMcap.textContent = fmt.num(a.marketCap);
+
+    const tdFdv = document.createElement("td");
+    tdFdv.className = "num";
+    tdFdv.textContent = fmt.num(a.fdv);
+
+    const tdVol = document.createElement("td");
+    tdVol.className = "num";
+    tdVol.textContent = fmt.num(a.volume24h);
+
+    // sector
+    const tdSector = document.createElement("td");
+    tdSector.textContent = a.sector || "-";
+    tdSector.title = a.sector || "";
+
+    // ROI
+    const tdR1m = document.createElement("td");
+    tdR1m.className = "num " + (a.roi1m > 0 ? "up" : a.roi1m < 0 ? "down" : "");
+    tdR1m.textContent = a.roi1m != null ? fmt.pct(a.roi1m) : "-";
+
+    const tdR1y = document.createElement("td");
+    tdR1y.className = "num " + (a.roi1y > 0 ? "up" : a.roi1y < 0 ? "down" : "");
+    tdR1y.textContent = a.roi1y != null ? fmt.pct(a.roi1y) : "-";
+
+    // tags
+    const tdTags = document.createElement("td");
+    const t = (a.tags || []).join(", ");
+    tdTags.textContent = t || "-";
+    tdTags.title = t;
+
+    tr.append(tdStar, tdSymbol, tdName, tdPrice, tdCh24, tdMcap, tdFdv, tdVol, tdSector, tdR1m, tdR1y, tdTags);
+
+    // (optional) detail click
+    tr.addEventListener("click", () => {
+      // openAssetDetail(a) — kalau kamu sudah punya handler detail
+      // untuk demo, biarkan kosong.
+    });
+
+    cryptoBody.appendChild(tr);
   });
 
-  renderPagerAndNote(table);
+  renderPager();
 }
 
-/* ---------- Pager + Note ---------- */
-function renderPagerAndNote(tableEl) {
-  const holder = tableEl.parentElement;
+/* -------------------------
+   Events
+------------------------- */
+searchBox?.addEventListener("input", () => { applyFilters(); renderCrypto(); });
+sortSelect?.addEventListener("change", () => { applyFilters(); renderCrypto(); });
+filterWatchlist?.addEventListener("change", () => { applyFilters(); renderCrypto(); });
 
-  let pager = $('#cryptoPager', holder);
-  if (!pager) {
-    pager = document.createElement('div');
-    pager.id='cryptoPager';
-    pager.className='pager';
-    holder.appendChild(pager);
-  }
-  pager.innerHTML='';
+pager.size?.addEventListener("change", () => {
+  pageSize = Number(pager.size.value || 10);
+  page = 1;
+  renderCrypto();
+});
+pager.first?.addEventListener("click", () => { page = 1; renderCrypto(); });
+pager.prev ?.addEventListener("click", () => { page = Math.max(1, page - 1); renderCrypto(); });
+pager.next ?.addEventListener("click", () => {
+  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
+  page = Math.min(totalPages, page + 1);
+  renderCrypto();
+});
+pager.last ?.addEventListener("click", () => {
+  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
+  page = totalPages; renderCrypto();
+});
 
-  const total = state.filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total/state.pageSize));
+btnTopGainers?.addEventListener("click", () => {
+  btnTopGainers.dataset.active = btnTopGainers.dataset.active === "1" ? "0" : "1";
+  btnTopLosers.dataset.active = "0";
+  applyFilters(); renderCrypto();
+});
+btnTopLosers?.addEventListener("click", () => {
+  btnTopLosers.dataset.active = btnTopLosers.dataset.active === "1" ? "0" : "1";
+  btnTopGainers.dataset.active = "0";
+  applyFilters(); renderCrypto();
+});
 
-  const info = document.createElement('span');
-  info.textContent = `${(state.page-1)*state.pageSize+1}-${Math.min(state.page*state.pageSize,total)} of ${total}`;
-  pager.appendChild(info);
+/* -------------------------
+   Boot
+------------------------- */
+async function loadData() {
+  // path data dummy (sudah kamu pakai sebelumnya)
+  const url = "assets/data/assets.json";
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Cannot load assets.json");
+  const rows = await res.json();
 
-  // note di bawah pager
-  let note = $('#demoNote', holder);
-  if (!note) {
-    note = document.createElement('div');
-    note.id='demoNote';
-    note.className='note-text';
-    holder.appendChild(note);
-  }
-  note.textContent = 'note: demo only, data is simulated for the Anoma intents dashboard.';
+  // normalisasi minimal field yang dipakai
+  allAssets = rows.map(r => ({
+    symbol: r.symbol,
+    name: r.name,
+    price: r.price,
+    change24h: r.change24h,
+    marketCap: r.marketCap,
+    fdv: r.fdv,
+    volume24h: r.volume24h,
+    sector: r.sector,
+    roi1m: r.roi1m,
+    roi1y: r.roi1y,
+    tags: r.tags || [],
+  }));
+
+  applyFilters();
+  renderCrypto();
 }
 
-/* ---------- Render All ---------- */
-function renderAll(){ renderTable(); }
-
-/* ---------- Init ---------- */
-window.addEventListener('DOMContentLoaded', async ()=>{
-  const search = $('#globalSearch');
-  if (search) search.addEventListener('input', e=>{
-    state.search = e.target.value;
-    state.page=1; applyFilters(); renderAll();
-  });
-
-  await loadData();
+loadData().catch(err => {
+  console.error(err);
+  renderEmpty("Demo Error: assets/data/assets.json not found (cek path atau nama file).");
 });
