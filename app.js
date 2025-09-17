@@ -1,6 +1,12 @@
-/* ==============
-   Minimal state
-================= */
+/* ===========================
+   Anoma Intents Dashboard - app.js (FINAL)
+   - Auto base-path GitHub Pages
+   - Fallback data jika fetch gagal
+   - Tabel header/body sinkron (butuh style.css final)
+   - Reset filter agar tidak ke-0
+=========================== */
+
+/* ---------- Global State ---------- */
 const state = {
   data: [],
   filtered: [],
@@ -11,9 +17,7 @@ const state = {
   pageSize: 10,
 };
 
-/* ==============
-   Elements
-================= */
+/* ---------- Elements ---------- */
 const el = (id) => document.getElementById(id);
 const tbody = el("cryptoTbody");
 const thead = el("cryptoThead");
@@ -28,33 +32,28 @@ const btnLast  = el("btnLast");
 const watchOnly = el("watchOnly");
 const themeBtn = el("themeBtn");
 
-/* ==============
-   Utils
-================= */
+/* ---------- Utils ---------- */
 const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
 
 function compactNumber(v){
   if (v == null || isNaN(v)) return "-";
-  if (Math.abs(v) >= 1e12) return nf.format(v/1e12) + "T";
-  if (Math.abs(v) >= 1e9)  return nf.format(v/1e9)  + "B";
-  if (Math.abs(v) >= 1e6)  return nf.format(v/1e6)  + "M";
-  if (Math.abs(v) >= 1e3)  return nf.format(v/1e3)  + "K";
+  const av = Math.abs(v);
+  if (av >= 1e12) return nf.format(v/1e12) + "T";
+  if (av >= 1e9)  return nf.format(v/1e9)  + "B";
+  if (av >= 1e6)  return nf.format(v/1e6)  + "M";
+  if (av >= 1e3)  return nf.format(v/1e3)  + "K";
   return nf.format(v);
 }
-const fmtPrice   = (v)=> (v==null? "-" : (v>=1000? "$"+nf.format(v) : "$"+v));
-const fmtPct     = (v)=> (v==null? "-" : (v>=0? "" : "") + (v*1).toFixed(2) + "%");
-const isPos      = (v)=> v!=null && v >= 0;
+const fmtPrice = (v)=> (v==null? "-" : (v>=1000? "$"+nf.format(v) : "$"+v));
+const fmtPct   = (v)=> (v==null? "-" : (v*1).toFixed(2) + "%");
+const isPos    = (v)=> v!=null && v >= 0;
 
-/* ==============
-   Data load
-================= */
-// FINAL loader: auto base-path, anti-cache, dan FALLBACK data
+/* ---------- Data Loader (auto GH Pages + fallback) ---------- */
 async function loadData() {
   const isGh = location.hostname.endsWith("github.io");
   const repo = isGh ? `/${location.pathname.split("/")[1]}` : "";
   const DATA_URL = `${location.origin}${repo}/assets/data/assets.json?v=${Date.now()}`;
 
-  // fallback minimal agar tabel tetap tampil
   const fallback = [
     {
       symbol: "BTC", name: "Bitcoin", price: 65000, change24h: -0.8,
@@ -97,50 +96,12 @@ async function loadData() {
     }
   } catch (err) {
     console.error("[data] gagal:", err);
-    const empty = document.getElementById("cryptoEmpty");
-    if (empty) {
-      empty.classList.remove("hidden");
-      empty.textContent = "Demo Error: assets/data/assets.json tidak ditemukan. Memakai data fallback.";
-    }
+    // Pakai fallback tapi JANGAN menyalakan empty banner di sini
     state.data = fallback;
   }
 }
 
-  try {
-    console.log("[data] try fetch:", DATA_URL);
-    const res = await fetch(DATA_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error(`fetch ${DATA_URL} -> ${res.status}`);
-    const arr = await res.json();
-
-    state.data = (arr || []).map(a => ({
-      symbol: a.symbol,  name: a.name,
-      price: a.price,    change24h: a.change24h,
-      marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
-      sector: a.sector,  roi1m: a.roi1m, roi1y: a.roi1y,
-      tags: a.tags || [], badge: a.badge,
-      logo: a.logo ? (a.logo.startsWith("http") ? a.logo : `${base}/${a.logo.replace(/^\/+/,"")}`) : ""
-    }));
-
-    if (!state.data.length) {
-      console.warn("[data] JSON kosong, pakai fallback");
-      state.data = fallback;
-    }
-  } catch (err) {
-    console.error("[data] gagal:", err);
-    // tampilkan pesan & pakai fallback
-    const empty = document.getElementById("cryptoEmpty");
-    if (empty) {
-      empty.classList.remove("hidden");
-      empty.textContent = "Demo Error: assets/data/assets.json tidak ditemukan. Memakai data fallback.";
-    }
-    state.data = fallback;
-  }
-}
-
-
-/* ==============
-   Filtering + sort
-================= */
+/* ---------- Filter & Sort ---------- */
 function applyFilterSort(){
   const q = (searchInput.value||"").trim().toLowerCase();
   let rows = state.data;
@@ -173,9 +134,7 @@ function applyFilterSort(){
   state.filtered = rows;
 }
 
-/* ==============
-   Render table
-================= */
+/* ---------- Render Table ---------- */
 function render(){
   applyFilterSort();
 
@@ -186,13 +145,14 @@ function render(){
   const start = (state.page - 1) * state.pageSize;
   const slice = state.filtered.slice(start, start + state.pageSize);
 
-  // kosongkan
+  const empty = document.getElementById("cryptoEmpty");
   tbody.innerHTML = "";
 
-  if (!slice.length){
-    document.getElementById("cryptoEmpty").classList.remove("hidden");
+  if (!slice.length) {
+    empty.classList.remove("hidden");
+    empty.textContent = "No results found.";
   } else {
-    document.getElementById("cryptoEmpty").classList.add("hidden");
+    empty.classList.add("hidden");
 
     slice.forEach(a=>{
       const tr = document.createElement("tr");
@@ -254,7 +214,7 @@ function render(){
       tdFd.className = "num";
       tdFd.textContent = compactNumber(a.fdv);
 
-      // Vol24h
+      // Vol 24h
       const tdVol = document.createElement("td");
       tdVol.className = "num";
       tdVol.textContent = compactNumber(a.volume24h);
@@ -285,8 +245,8 @@ function render(){
       tbody.appendChild(tr);
 
       tr.addEventListener("click", ()=> {
-        // placeholder: klik row → nanti bisa diarahkan ke detail
-        // console.log("open detail", a.symbol);
+        // Placeholder: klik untuk detail page (bisa diarahkan nanti)
+        // console.log("detail:", a.symbol);
       });
     });
   }
@@ -295,17 +255,11 @@ function render(){
   updateSortIndicators();
 }
 
-/* ==============
-   Sort handlers
-================= */
+/* ---------- Sort Indicators & Click ---------- */
 function updateSortIndicators(){
-  // reset
-  thead.querySelectorAll(".sortable").forEach(th=>{
-    th.removeAttribute("data-sort");
-  });
-  // set indicator
-  const current = thead.querySelector(`.sortable[data-key="${state.sortKey}"]`);
-  if (current) current.setAttribute("data-sort", state.sortDir);
+  thead.querySelectorAll(".sortable").forEach(th=> th.removeAttribute("data-sort"));
+  const cur = thead.querySelector(`.sortable[data-key="${state.sortKey}"]`);
+  if (cur) cur.setAttribute("data-sort", state.sortDir);
 }
 
 thead.addEventListener("click",(e)=>{
@@ -321,9 +275,7 @@ thead.addEventListener("click",(e)=>{
   render();
 });
 
-/* ==============
-   Pager
-================= */
+/* ---------- Pager ---------- */
 pageSizeSel.addEventListener("change", ()=>{
   state.pageSize = parseInt(pageSizeSel.value,10)||10;
   state.page = 1; render();
@@ -333,38 +285,41 @@ btnPrev.onclick  = ()=>{ state.page=Math.max(1, state.page-1); render(); };
 btnNext.onclick  = ()=>{ state.page+=1; render(); };
 btnLast.onclick  = ()=>{ const totalPages=Math.max(1, Math.ceil(state.filtered.length/state.pageSize)); state.page=totalPages; render(); };
 
-/* ==============
-   Search & filters
-================= */
-searchInput.addEventListener("input", ()=>{
-  state.page = 1; render();
-});
+/* ---------- Search & Filters ---------- */
+searchInput.addEventListener("input", ()=>{ state.page=1; render(); });
 sortSelect.addEventListener("change", ()=>{
   const [k,dir] = sortSelect.value.split("|");
-  state.sortKey = k; state.sortDir = dir; state.page=1; render();
+  state.sortKey=k; state.sortDir=dir; state.page=1; render();
 });
 watchOnly.addEventListener("change", ()=>{ state.page=1; render(); });
 
-/* ==============
-   Theme toggle
-================= */
-themeBtn.addEventListener("click", ()=>{
+/* ---------- Theme toggle ---------- */
+themeBtn?.addEventListener("click", ()=>{
   document.documentElement.classList.toggle("light");
 });
 
-/* ==============
-   Boot
-================= */
+/* ---------- Error hooks (opsional) ---------- */
+window.addEventListener("error", e => console.error("[window error]", e.message));
+window.addEventListener("unhandledrejection", e => console.error("[promise rejection]", e.reason));
+
+/* ---------- Init ---------- */
 (async function init(){
-  try{
+  try {
     await loadData();
-  }catch(err){
-    console.error(err);
-    // tetap render kosong supaya UI tidak "mati"
+  } catch (e) {
+    console.error(e);
   }
-  // default dari select sort
-  const [k,dir] = sortSelect.value.split("|");
-  state.sortKey = k; state.sortDir = dir;
-  state.pageSize = parseInt(pageSizeSel.value,10)||10;
+
+  // Reset filter agar tidak mengosongkan tabel
+  searchInput.value = "";
+  watchOnly.checked = false;
+  state.page = 1;
+
+  // set default sort dari select
+  const [k,dir] = (sortSelect?.value || "marketCap|desc").split("|");
+  state.sortKey = k; 
+  state.sortDir = dir;
+  state.pageSize = parseInt(pageSizeSel?.value,10)||10;
+
   render();
 })();
