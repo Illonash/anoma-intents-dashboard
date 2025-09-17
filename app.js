@@ -1,429 +1,298 @@
-// =============================
-// Anoma Intents Dashboard - app.js (FINAL)
-// =============================
+/* =========================================================
+   Anoma Intents Dashboard — minimal demo data renderer
+   + Mini Apps: Token Swap & NFT Swap (simulated)
+   ========================================================= */
 
-// ------- Global State -------
-const state = {
-  data: [],
-  filtered: [],
-  watchlist: new Set(JSON.parse(localStorage.getItem("watchlist") || "[]")),
-  sortKey: "marketCap",
-  sortDir: "desc",
-  page: 1,
-  pageSize: 10,
-  quick: null, // 'gainers' | 'losers' | null
-};
-
-// ------- Utils -------
-const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
-const compact = (v) =>
-  v == null || isNaN(v)
-    ? "-"
-    : v >= 1e12
-    ? nf.format(v / 1e12) + "T"
-    : v >= 1e9
-    ? nf.format(v / 1e9) + "B"
-    : v >= 1e6
-    ? nf.format(v / 1e6) + "M"
-    : nf.format(v);
-
-// ------- DOM refs (diisi saat init) -------
-let tbody,
-  pageInfo,
-  searchInput,
-  watchOnly,
-  sortSelect,
-  pageSizeSel,
-  btnFirst,
-  btnPrev,
-  btnNext,
-  btnLast,
-  btnGainers,
-  btnLosers;
-
-// ------- Data Loader (multi-path + fallback) -------
-async function loadData() {
-  const isGh = location.hostname.endsWith("github.io");
-  const repo = isGh ? `/${location.pathname.split("/")[1]}` : "";
-  const candidates = [
-    `${location.origin}${repo}/assets/data/assets.json`,
-    `${location.origin}/assets/data/assets.json`,
-    new URL("assets/data/assets.json", location.href).href,
-  ];
-  const fallback = [
-    {
-      symbol: "BTC",
-      name: "Bitcoin",
-      price: 65000,
-      change24h: -0.8,
-      marketCap: 1.28e12,
-      fdv: 1.28e12,
-      volume24h: 3.5e10,
-      sector: "Store of Value",
-      roi1m: 5.3,
-      roi1y: 40.1,
-      tags: ["DeFi"],
-      logo: `${repo}/assets/logo-btc.png`,
-    },
-    {
-      symbol: "ETH",
-      name: "Ethereum",
-      price: 3200,
-      change24h: 2.1,
-      marketCap: 3.8e11,
-      fdv: 3.8e11,
-      volume24h: 1.8e10,
-      sector: "Smart Contract",
-      roi1m: 6.7,
-      roi1y: 55.0,
-      tags: ["DeFi", "AI"],
-      logo: `${repo}/assets/logo-eth.png`,
-    },
-    {
-      symbol: "BNB",
-      name: "BNB",
-      price: 590,
-      change24h: -1.2,
-      marketCap: 9.1e10,
-      fdv: 9.1e10,
-      volume24h: 1.2e10,
-      sector: "Exchange Token",
-      roi1m: 2.8,
-      roi1y: 25.7,
-      tags: ["DeFi"],
-      logo: `${repo}/assets/logo-bnb.png`,
-    },
-    {
-      symbol: "XAN",
-      name: "Anoma Token", // akan ditampilkan sebagai "Anoma" di render()
-      price: 1.25,
-      change24h: 3.2,
-      marketCap: 1.5e9,
-      fdv: 2.5e9,
-      volume24h: 5.6e8,
-      sector: "Modular",
-      roi1m: 12.5,
-      roi1y: 85.3,
-      tags: ["Anoma", "ZK", "Modular"],
-      logo: `${repo}/assets/logo-xan.png`,
-    },
-  ];
-
-  const tryFetch = async (url) => {
-    try {
-      const res = await fetch(`${url}?v=${Date.now()}`, { cache: "no-store" });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch {
-      return null;
-    }
+(function(){
+  const state = {
+    data: [],         // crypto list
+    page: 1,
+    pageSize: 10,
+    sortKey: 'marketCap',
+    sortDir: 'desc',
+    quick: '',        // 'gainers' | 'losers' | ''
+    watchOnly: false,
+    watch: new Set(JSON.parse(localStorage.getItem('watchlist')||'[]')),
+    theme: localStorage.getItem('theme') || 'dark'
   };
 
-  for (const url of candidates) {
-    const arr = await tryFetch(url);
-    if (Array.isArray(arr) && arr.length) {
+  /* ---------- utils ---------- */
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const fmtNum = n => n==null ? '-' :
+      (Math.abs(n)>=1e12? (n/1e12).toFixed(2)+'T':
+      Math.abs(n)>=1e9? (n/1e9).toFixed(2)+'B':
+      Math.abs(n)>=1e6? (n/1e6).toFixed(2)+'M':
+      Math.abs(n)>=1e3? (n/1e3).toFixed(2)+'K':
+      (''+n));
+  const fmtPrice = n => n==null?'-' : (n>=1000? '$'+fmtNum(n) : '$'+Number(n).toLocaleString());
+  const pct = n => n==null?'-' : (n>=0? '+' : '') + Number(n).toFixed(2) + '%';
+
+  function saveWatch(){
+    localStorage.setItem('watchlist', JSON.stringify(Array.from(state.watch)));
+  }
+  function setTheme(t){
+    state.theme = t;
+    document.documentElement.classList.toggle('light', t==='light');
+    document.documentElement.classList.toggle('dark', t!=='light');
+    localStorage.setItem('theme', t);
+  }
+
+  /* ---------- data loading ---------- */
+  async function loadData(){
+    // data demo
+    // kamu bisa tambahkan item lain ke assets/data/assets.json
+    // format: symbol, name, price, change24h, marketCap, fdv, volume24h, sector, roi1m, roi1y, tags[], logo
+    const url = 'assets/data/assets.json';
+    try{
+      const res = await fetch(url, {cache:'no-store'});
+      if(!res.ok) throw new Error(res.status+' '+res.statusText);
+      const arr = await res.json();
       state.data = arr;
-      break;
+    }catch(e){
+      // fallback minimal (kalau fetch 404)
+      state.data = [
+        {symbol:'BTC', name:'Bitcoin', price:65000, change24h:-0.8, marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'], logo:'assets/coins/btc.png'},
+        {symbol:'ETH', name:'Ethereum', price:3200, change24h:2.1, marketCap:3.8e11, fdv:3.8e11, volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'], logo:'assets/coins/eth.png'},
+        {symbol:'BNB', name:'BNB', price:590, change24h:-1.2, marketCap:9.1e10, fdv:9.1e10, volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'], logo:'assets/coins/bnb.png'},
+        {symbol:'XAN', name:'Anoma', price:1.25, change24h:3.2, marketCap:1.5e9, fdv:2.5e9, volume24h:5.6e8, sector:'Modular', roi1m:12.5, roi1y:85.3, tags:['Anoma','ZK','Modular'], logo:'assets/logo-xan.png'}
+      ];
     }
   }
-  if (!state.data.length) state.data = fallback;
-}
 
-// ------- Filter + Sort -------
-function applyFilterSort() {
-  const q = (searchInput.value || "").toLowerCase();
-  let rows = state.data;
+  /* ---------- filtering & sorting ---------- */
+  function filtered(){
+    let rows = state.data.slice();
 
-  if (q) {
-    rows = rows.filter(
-      (r) =>
-        (r.symbol || "").toLowerCase().includes(q) ||
-        (r.name || "").toLowerCase().includes(q) ||
-        (r.sector || "").toLowerCase().includes(q) ||
-        (r.tags || []).some((t) => (t || "").toLowerCase().includes(q))
-    );
+    // search
+    const q = ($('#q').value||'').trim().toLowerCase();
+    if(q){
+      rows = rows.filter(a =>
+        a.symbol.toLowerCase().includes(q) ||
+        (a.name||'').toLowerCase().includes(q) ||
+        (a.tags||[]).join(' ').toLowerCase().includes(q)
+      );
+    }
+
+    // chip
+    if(state.quick==='gainers'){ rows.sort((a,b)=>(b.change24h||0)-(a.change24h||0)); }
+    else if(state.quick==='losers'){ rows.sort((a,b)=>(a.change24h||0)-(b.change24h||0)); }
+
+    // watch only
+    if(state.watchOnly){ rows = rows.filter(a=>state.watch.has(a.symbol)); }
+
+    // sort
+    const k = state.sortKey, dir = state.sortDir==='desc'? -1: 1;
+    rows.sort((a,b)=>{
+      const x = a[k], y = b[k];
+      if(x==null && y==null) return 0;
+      if(x==null) return 1;
+      if(y==null) return -1;
+      if(typeof x==='string') return x.localeCompare(y)*dir;
+      return (x>y?1:x<y?-1:0)*dir;
+    });
+    return rows;
   }
 
-  if (watchOnly.checked) rows = rows.filter((r) => state.watchlist.has(r.symbol));
-  if (state.quick === "gainers") rows = rows.filter((r) => (r.change24h ?? 0) > 0);
-  if (state.quick === "losers") rows = rows.filter((r) => (r.change24h ?? 0) < 0);
+  /* ---------- render table ---------- */
+  function render(){
+    const rows = filtered();
 
-  const { sortKey, sortDir } = state;
-  rows.sort((a, b) => {
-    const va = a[sortKey],
-      vb = b[sortKey];
-    if (typeof va === "string" || typeof vb === "string")
-      return (sortDir === "asc" ? 1 : -1) * String(va).localeCompare(String(vb));
-    const na = typeof va === "number" ? va : va == null ? -Infinity : 0;
-    const nb = typeof vb === "number" ? vb : vb == null ? -Infinity : 0;
-    return (sortDir === "asc" ? 1 : -1) * (na - nb);
-  });
+    // pagination
+    const total = rows.length;
+    const pages = Math.max(1, Math.ceil(total / state.pageSize));
+    state.page = Math.min(Math.max(1, state.page), pages);
+    const start = (state.page-1)*state.pageSize;
+    const slice = rows.slice(start, start+state.pageSize);
 
-  state.filtered = rows;
-}
+    const tb = $('#cryptoTbody');
+    tb.innerHTML = '';
 
-// ------- Render -------
-function render() {
-  applyFilterSort();
-
-  const total = state.filtered.length;
-  const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
-  if (state.page > totalPages) state.page = totalPages;
-
-  const start = (state.page - 1) * state.pageSize;
-  const slice = state.filtered.slice(start, start + state.pageSize);
-
-  const empty = document.getElementById("cryptoEmpty");
-  tbody.innerHTML = "";
-
-  if (!slice.length) {
-    empty.classList.remove("hidden");
-    empty.textContent = "No results found.";
-  } else {
-    empty.classList.add("hidden");
-
-    slice.forEach((a) => {
-      const tr = document.createElement("tr");
-      tr.style.cursor = "pointer";
-      if (a.symbol === "XAN") tr.classList.add("highlight-xan");
+    slice.forEach(a=>{
+      const tr = document.createElement('tr');
 
       // star
-      const tdStar = document.createElement("td");
-      const star = document.createElement("button");
-      star.className = "star" + (state.watchlist.has(a.symbol) ? " active" : "");
-      star.textContent = "★";
-      star.addEventListener("click", (ev) => {
+      const tdStar = document.createElement('td');
+      const btn = document.createElement('button');
+      btn.className = 'btn mini';
+      btn.textContent = state.watch.has(a.symbol)? '－' : '＋';
+      btn.addEventListener('click', ev=>{
         ev.stopPropagation();
-        if (state.watchlist.has(a.symbol)) state.watchlist.delete(a.symbol);
-        else state.watchlist.add(a.symbol);
-        localStorage.setItem("watchlist", JSON.stringify([...state.watchlist]));
-        render();
+        if(state.watch.has(a.symbol)) state.watch.delete(a.symbol); else state.watch.add(a.symbol);
+        saveWatch(); render();
       });
-      tdStar.appendChild(star);
+      tdStar.appendChild(btn);
 
       // symbol
-      const tdSym = document.createElement("td");
-      tdSym.textContent = a.symbol || "-";
+      const tdSym = document.createElement('td'); tdSym.textContent = a.symbol;
 
-      // name (+logo) — XAN tampil sebagai "Anoma"
-      const tdName = document.createElement("td");
-      const wrap = document.createElement("div");
-      wrap.style.display = "inline-flex";
-      wrap.style.gap = "8px";
-      wrap.style.alignItems = "center";
-      if (a.logo) {
-        const img = new Image();
-        img.src = a.logo;
-        img.width = 18;
-        img.height = 18;
-        img.style.borderRadius = "4px";
-        wrap.appendChild(img);
-      }
-      const nm = document.createElement("span");
-      const displayName = a.symbol === "XAN" ? "Anoma" : a.name || "-";
-      nm.textContent = displayName;
-      wrap.appendChild(nm);
+      // name (logo + text)
+      const tdName = document.createElement('td');
+      const wrap = document.createElement('div');
+      if(a.logo){ const img = new Image(); img.src = a.logo; img.width=18; img.height=18; img.style.borderRadius='4px'; wrap.appendChild(img); }
+      const nm = document.createElement('span'); nm.textContent = a.symbol==='XAN' ? 'Anoma' : (a.name||'-'); wrap.appendChild(nm);
       tdName.appendChild(wrap);
 
-      // numbers
-      const tdPrice = document.createElement("td");
-      tdPrice.className = "num";
-      tdPrice.textContent =
-        a.price == null ? "-" : "$" + (a.price >= 1000 ? new Intl.NumberFormat("en-US").format(a.price) : a.price);
+      // numerics
+      const tdPrice = document.createElement('td'); tdPrice.className = 'num'; tdPrice.textContent = fmtPrice(a.price);
+      const tdChg   = document.createElement('td'); tdChg.className = 'num'; tdChg.textContent = pct(a.change24h);
+      tdChg.style.color = (a.change24h||0) >= 0 ? 'var(--green)' : '#f87171';
+      const tdMc    = document.createElement('td'); tdMc.className = 'num'; tdMc.textContent = fmtNum(a.marketCap);
+      const tdFdv   = document.createElement('td'); tdFdv.className = 'num'; tdFdv.textContent = fmtNum(a.fdv);
+      const tdVol   = document.createElement('td'); tdVol.className = 'num'; tdVol.textContent = fmtNum(a.volume24h);
 
-      const tdChg = document.createElement("td");
-      tdChg.className = "num";
-      tdChg.textContent = a.change24h == null ? "-" : a.change24h.toFixed(2) + "%";
-      tdChg.style.color = a.change24h == null ? "inherit" : a.change24h >= 0 ? "var(--pos)" : "var(--neg)";
+      // sector
+      const tdSec   = document.createElement('td'); tdSec.textContent = a.sector || '-';
 
-      const tdMc = document.createElement("td");
-      tdMc.className = "num";
-      tdMc.textContent = compact(a.marketCap);
+      // ROI
+      const tdR1m = document.createElement('td'); tdR1m.className='num'; tdR1m.textContent = pct(a.roi1m);
+      const tdR1y = document.createElement('td'); tdR1y.className='num'; tdR1y.textContent = pct(a.roi1y);
 
-      const tdFd = document.createElement("td");
-      tdFd.className = "num";
-      tdFd.textContent = compact(a.fdv);
+      // tags
+      const tdTags = document.createElement('td'); tdTags.textContent = (a.tags||[]).join(', ');
 
-      const tdVol = document.createElement("td");
-      tdVol.className = "num";
-      tdVol.textContent = compact(a.volume24h);
+      tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFdv, tdVol, tdSec, tdR1m, tdR1y, tdTags);
 
-      const tdSec = document.createElement("td");
-      tdSec.textContent = a.sector || "-";
-      tdSec.title = a.sector || "";
+      // row click → (optional) detail modal — untuk demo cukup highlight
+      tr.addEventListener('click', ()=> {
+        // highlight baris sebentar
+        tr.style.background = 'rgba(229,57,53,.08)';
+        setTimeout(()=> tr.style.background='', 300);
+      });
 
-      const tdR1m = document.createElement("td");
-      tdR1m.className = "num";
-      tdR1m.textContent = a.roi1m == null ? "-" : a.roi1m.toFixed(2) + "%";
-      tdR1m.style.color = a.roi1m == null ? "inherit" : a.roi1m >= 0 ? "var(--pos)" : "var(--neg)";
+      tb.appendChild(tr);
+    });
 
-      const tdR1y = document.createElement("td");
-      tdR1y.className = "num";
-      tdR1y.textContent = a.roi1y == null ? "-" : a.roi1y.toFixed(2) + "%";
-      tdR1y.style.color = a.roi1y == null ? "inherit" : a.roi1y >= 0 ? "var(--pos)" : "var(--neg)";
+    // pager text
+    $('#pageInfo').textContent = `${total? (start+1):0}–${Math.min(start+state.pageSize,total)} of ${total}`;
+  }
 
-      const tdTags = document.createElement("td");
-      tdTags.textContent = (a.tags || []).join(", ");
-      tdTags.title = tdTags.textContent;
+  /* ---------- events ---------- */
+  function bindEvents(){
+    // search
+    $('#q').addEventListener('input', ()=>{ state.page=1; render(); });
 
-      tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFd, tdVol, tdSec, tdR1m, tdR1y, tdTags);
-      tr.addEventListener("click", () => openDetail(a));
-      tbody.appendChild(tr);
+    // watch only
+    $('#onlyWatch').addEventListener('change', (e)=>{ state.watchOnly = e.target.checked; state.page=1; render(); });
+
+    // sort select
+    $('#sorter').addEventListener('change', (e)=>{
+      const [k, dir] = e.target.value.split('-');
+      state.sortKey = k; state.sortDir = dir; state.page=1; render();
+    });
+
+    // chips
+    $$('.chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const v = btn.dataset.chip;
+        state.quick = (state.quick===v)? '' : v;
+        $$('.chip').forEach(c=>c.classList.toggle('active', c.dataset.chip===state.quick));
+        state.page=1; render();
+      });
+    });
+
+    // pager
+    $('#first').onclick = ()=>{ state.page=1; render(); };
+    $('#prev').onclick  = ()=>{ state.page=Math.max(1,state.page-1); render(); };
+    $('#next').onclick  = ()=>{ state.page=state.page+1; render(); };
+    $('#last').onclick  = ()=>{ state.page=9999; render(); };
+    $('#pageSize').addEventListener('change', e=>{ state.pageSize=+e.target.value; state.page=1; render(); });
+
+    // theme
+    $('#btnTheme').addEventListener('click', ()=> setTheme(state.theme==='dark' ? 'light' : 'dark'));
+  }
+
+  /* ---------- mini apps ---------- */
+  function allSymbols(){
+    return state.data.map(x=>x.symbol);
+  }
+  function getPrice(sym){
+    const f = state.data.find(x=>x.symbol===sym);
+    return f? (f.price||0) : 0;
+  }
+  function fillTokenSelects(){
+    const opts = allSymbols();
+    const fill = (sel, def) => {
+      sel.innerHTML = opts.map(s=>`<option ${s===def?'selected':''}>${s}</option>`).join('');
+    };
+    fill($('#swapFrom'),'USDC' in opts ? 'USDC' : (opts[1]||opts[0]));
+    fill($('#swapTo'),  'ETH'  in opts ? 'ETH'  : (opts[0]||''));
+  }
+
+  function parseIntentText(txt){
+    // sangat sederhana: "convert 100 usdc to eth"
+    const m = /(\d+(\.\d+)?)\s*([a-z0-9]+)\s*(to|→)\s*([a-z0-9]+)/i.exec(txt||'');
+    if(!m) return null;
+    return { amount: parseFloat(m[1]), from:m[3].toUpperCase(), to:m[5].toUpperCase() };
+  }
+
+  function bindSwap(){
+    fillTokenSelects();
+
+    $('#swapForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+
+      // parse intent text jika ada
+      const parsed = parseIntentText($('#swapIntent').value);
+      let amount = +$('#swapAmount').value;
+      let from = $('#swapFrom').value;
+      let to   = $('#swapTo').value;
+
+      if(parsed){
+        amount = parsed.amount || amount;
+        from = parsed.from || from;
+        to   = parsed.to   || to;
+        $('#swapAmount').value = amount;
+        $('#swapFrom').value = from;
+        $('#swapTo').value = to;
+      }
+
+      const pFrom = getPrice(from) || 1;
+      const pTo   = getPrice(to)   || 1;
+      const out = (amount * pFrom) / pTo;
+
+      $('#swapResult').textContent =
+        `Simulated: ${amount} ${from} ≈ ${out.toFixed(6)} ${to}  (px: ${fmtPrice(pFrom)} → ${fmtPrice(pTo)})`;
+    });
+
+    $('#swapForm').addEventListener('reset', ()=>{
+      $('#swapResult').textContent = '';
     });
   }
 
-  pageInfo.textContent = ` ${slice.length ? start + 1 : 0}-${Math.min(start + state.pageSize, total)} of ${total}`;
-}
+  function bindNFT(){
+    $('#nftForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const col = $('#nftCollection').value || 'Unknown';
+      const id  = $('#nftId').value || '#0';
+      const tgt = $('#nftTarget').value || '-';
+      const fc  = $('#nftFromChain').value;
+      const tc  = $('#nftToChain').value;
 
-// ------- Modal Detail + Swap Demo -------
-function openDetail(a) {
-  const m = document.getElementById("detailModal");
-  const b = document.getElementById("detailBody");
-  b.innerHTML = `
-    <div class="detail-head">
-      ${a.logo ? `<img src="${a.logo}" alt="${a.symbol}" />` : ""}
-      <div>
-        <h3>${a.symbol === "XAN" ? "Anoma" : a.name} <small>(${a.symbol})</small></h3>
-        <div class="muted">${a.sector || "-"}</div>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="card">
-        <div class="card-title">Overview</div>
-        <div class="kv"><span>Price</span><b>$${a.price ?? "-"}</b></div>
-        <div class="kv"><span>24h</span><b style="color:${(a.change24h ?? 0) >= 0 ? "var(--pos)" : "var(--neg)"}">${a.change24h ?? "-"}%</b></div>
-        <div class="kv"><span>Market Cap</span><b>${compact(a.marketCap)}</b></div>
-        <div class="kv"><span>FDV</span><b>${compact(a.fdv)}</b></div>
-        <div class="kv"><span>Vol 24h</span><b>${compact(a.volume24h)}</b></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Swap demo (→ XAN)</div>
-        <div class="swap-row">
-          <input id="swapAmt" type="number" min="0" placeholder="amount">
-          <button class="btn-red" id="btnSim">Simulate</button>
-        </div>
-        <div id="swapOut" class="muted" style="margin-top:6px"></div>
-      </div>
-    </div>
-  `;
-  m.classList.add("show");
-  document.getElementById("btnCloseDetail").onclick = () => m.classList.remove("show");
-  document.getElementById("btnSim").onclick = () => {
-    const amt = parseFloat(document.getElementById("swapAmt").value || "0");
-    const rateXAN = 1.25; // demo rate
-    if (isNaN(amt) || amt <= 0) {
-      document.getElementById("swapOut").textContent = "Enter a valid amount";
-      return;
-    }
-    const out = a.price ? (amt * a.price) / rateXAN : amt;
-    document.getElementById("swapOut").textContent = `${amt} ${a.symbol} ≈ ${out.toFixed(2)} XAN (demo)`;
-  };
-}
-
-// ------- Init -------
-document.addEventListener("DOMContentLoaded", async () => {
-  // refs
-  tbody = document.getElementById("cryptoTbody");
-  pageInfo = document.getElementById("pageInfo");
-  searchInput = document.getElementById("searchInput");
-  watchOnly = document.getElementById("watchOnly");
-  sortSelect = document.getElementById("sortSelect");
-  pageSizeSel = document.getElementById("pageSize");
-  btnFirst = document.getElementById("btnFirst");
-  btnPrev = document.getElementById("btnPrev");
-  btnNext = document.getElementById("btnNext");
-  btnLast = document.getElementById("btnLast");
-  btnGainers = document.getElementById("btnGainers");
-  btnLosers = document.getElementById("btnLosers");
-
-  // Topbar controls
-  const topSearch = document.getElementById("topSearch");
-  const themeBtn = document.getElementById("themeBtn");
-
-  // Theme preferensi
-  const savedTheme = localStorage.getItem("theme") || "dark";
-  if (savedTheme === "light") document.documentElement.classList.add("light");
-  if (themeBtn) {
-    themeBtn.addEventListener("click", () => {
-      document.documentElement.classList.toggle("light");
-      const mode = document.documentElement.classList.contains("light") ? "light" : "dark";
-      localStorage.setItem("theme", mode);
+      $('#nftResult').textContent =
+        `Simulated: Swap NFT ${col} ${id} on ${fc} → ${tc} for ${tgt}.`;
     });
+    $('#nftForm').addEventListener('reset', ()=> $('#nftResult').textContent='');
   }
 
-  // sinkronisasi search (topbar <-> toolbar)
-  if (topSearch) {
-    topSearch.addEventListener("input", () => {
-      searchInput.value = topSearch.value;
-      state.page = 1;
-      render();
-    });
-    searchInput.addEventListener("input", () => {
-      if (topSearch.value !== searchInput.value) topSearch.value = searchInput.value;
-    });
-  }
+  /* ---------- init ---------- */
+  (async function init(){
+    // theme
+    setTheme(state.theme);
 
-  await loadData();
+    // load + render
+    await loadData();
+    bindEvents();
+    render();
 
-  // Listeners utama
-  searchInput.addEventListener("input", () => {
-    state.page = 1;
-    render();
-  });
-  watchOnly.addEventListener("change", () => {
-    state.page = 1;
-    render();
-  });
-  sortSelect.addEventListener("change", () => {
-    const [k, dir] = sortSelect.value.split("|");
-    state.sortKey = k;
-    state.sortDir = dir;
-    state.page = 1;
-    render();
-  });
-  pageSizeSel.addEventListener("change", () => {
-    state.pageSize = parseInt(pageSizeSel.value, 10) || 10;
-    state.page = 1;
-    render();
-  });
-  btnFirst.addEventListener("click", () => {
-    state.page = 1;
-    render();
-  });
-  btnPrev.addEventListener("click", () => {
-    state.page = Math.max(1, state.page - 1);
-    render();
-  });
-  btnNext.addEventListener("click", () => {
-    state.page += 1;
-    render();
-  });
-  btnLast.addEventListener("click", () => {
-    const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
-    state.page = total;
-    render();
-  });
+    // mini apps
+    bindSwap();
+    bindNFT();
 
-  btnGainers.addEventListener("click", () => {
-    state.quick = state.quick === "gainers" ? null : "gainers";
-    btnGainers.classList.toggle("chip-red", state.quick === "gainers");
-    btnLosers.classList.remove("chip-red");
-    state.page = 1;
-    render();
-  });
-  btnLosers.addEventListener("click", () => {
-    state.quick = state.quick === "losers" ? null : "losers";
-    btnLosers.classList.toggle("chip-red", state.quick === "losers");
-    btnGainers.classList.remove("chip-red");
-    state.page = 1;
-    render();
-  });
+    // sync UI default
+    $('#onlyWatch').checked = state.watchOnly;
+    $('#sorter').value = `${state.sortKey}-${state.sortDir}`;
+    $('#pageSize').value = state.pageSize;
+  })();
 
-  // init sort/page
-  const [k, dir] = (sortSelect.value || "marketCap|desc").split("|");
-  state.sortKey = k;
-  state.sortDir = dir;
-  state.pageSize = parseInt(pageSizeSel.value, 10) || 10;
-
-  render();
-});
+})();
