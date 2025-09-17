@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Anoma Intents Dashboard</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -19,16 +20,17 @@
         <option value="price|asc">Price ↑</option>
       </select>
       <button id="btnGainers" class="chip">Top Gainers</button>
-      <button id="btnLosers" class="chip">Top Losers</button>
+      <button id="btnLosers"  class="chip">Top Losers</button>
     </div>
 
-    <!-- Table -->
+    <!-- Tabel -->
     <div class="table-wrap">
       <table id="cryptoTable">
         <colgroup>
-          <col /><col /><col /><col /><col />
-          <col /><col /><col /><col /><col />
-          <col /><col />
+          <col /><col /><col />
+          <col /><col /><col />
+          <col /><col /><col />
+          <col /><col /><col />
         </colgroup>
         <thead id="cryptoThead">
           <tr>
@@ -70,12 +72,9 @@
       <div id="dataSourceLog" class="footer-note"></div>
       <div class="footer-pro center">
         <img src="assets/x-logo-dark.png" alt="X" class="x-logo" />
-        <span class="powered">
-          powered by <a href="https://x.com/illonashanum" target="_blank">illonashanum</a>
-        </span>
+        <span class="powered">powered by <a href="https://x.com/illonashanum" target="_blank">illonashanum</a></span>
       </div>
     </footer>
-
   </div>
 
   <!-- Modal Detail -->
@@ -86,6 +85,7 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Pastikan defer agar DOM siap -->
+  <script src="app.js" defer></script>
 </body>
 </html>
