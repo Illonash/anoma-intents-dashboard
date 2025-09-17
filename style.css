@@ -327,3 +327,34 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
 
 /* Panah sort tidak mengganggu klik & tidak menambah lebar */
 .sortable::after { pointer-events: none; }
+
+/* === NUMERIC COLUMN LOCK (final override) === */
+:root { --num-pr: 18px; } /* ruang kanan untuk panah sort */
+
+.table { table-layout: fixed !important; } /* pastikan thead/tbody pakai peta lebar yang sama */
+
+/* header numerik: rata kanan + padding kanan sama */
+.table thead th.num {
+  text-align: right !important;
+  padding-right: var(--num-pr) !important;
+}
+
+/* body numerik: rata kanan + padding kanan sama + digit sejajar */
+.table tbody td.num {
+  text-align: right !important;
+  padding-right: var(--num-pr) !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: "tnum" 1 !important;
+}
+
+/* semua header sortable punya ruang panah yang SAMA */
+.table thead th.sortable {
+  padding-right: var(--num-pr) !important;
+}
+
+/* panah sort tidak mengganggu klik dan posisinya konsisten */
+.sortable::after { pointer-events: none; right: 6px !important; width: 12px !important; }
+
+/* padding kiri seragam agar kolom teks tidak maju-mundur */
+.table thead th,
+.table tbody td { padding-left: 10px !important; }
