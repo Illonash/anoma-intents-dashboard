@@ -63,3 +63,26 @@ td:nth-child(3) img { width:18px; height:18px; border-radius:4px; }
 .swap-row input{ flex:1; padding:6px; border-radius:6px; border:1px solid #2a2a2a; background:#161616; color:#eee; }
 .btn-red { border:1px solid rgba(229,57,53,.35); background:rgba(229,57,53,.08); color:#ff6a66; border-radius:6px; padding:6px 10px; cursor:pointer; }
 .btn-red:hover { background:rgba(229,57,53,.14); }
+
+/* ==== TOP BAR ==== */
+.topbar {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:10px 12px; margin-bottom:8px;
+  border:1px solid #2a2a2a; border-radius:8px; background:#111;
+}
+.topbar-left { display:flex; align-items:center; gap:10px; }
+.brand-logo { width:22px; height:22px; border-radius:6px; }
+.brand-title { font-weight:700; letter-spacing:.2px; }
+
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.top-search {
+  width:min(460px, 48vw);
+  padding:8px 12px; border-radius:8px; border:1px solid #2a2a2a; background:#161616; color:#ddd;
+}
+.btn.ghost {
+  padding:8px 12px; border-radius:8px; border:1px solid #2a2a2a; background:#161616; color:#ccc;
+}
+.btn.ghost:hover { background:#222; }
+
+/* Sembunyikan catatan sumber data di footer */
+#dataSourceLog { display:none !important; }
