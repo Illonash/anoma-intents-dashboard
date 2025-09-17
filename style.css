@@ -86,3 +86,35 @@ td:nth-child(3) img { width:18px; height:18px; border-radius:4px; }
 
 /* Sembunyikan catatan sumber data di footer */
 #dataSourceLog { display:none !important; }
+
+/* ====== COLUMN WIDTHS (biar rapi & konsisten) ====== */
+table col:nth-child(1){ width:36px; }     /* star */
+table col:nth-child(2){ width:72px; }     /* symbol */
+table col:nth-child(3){ width:200px; }    /* name (logo + text) */
+table col:nth-child(4){ width:110px; }    /* price */
+table col:nth-child(5){ width:90px;  }    /* 24h */
+table col:nth-child(6){ width:120px; }    /* mcap */
+table col:nth-child(7){ width:110px; }    /* fdv */
+table col:nth-child(8){ width:110px; }    /* vol24h */
+table col:nth-child(9){ width:160px; }    /* sector */
+table col:nth-child(10){ width:90px; }    /* roi1m */
+table col:nth-child(11){ width:90px; }    /* roi1y */
+table col:nth-child(12){ width:200px; }   /* tags */
+
+/* highlight XAN lebih aman (kena semua sel) */
+tr.highlight-xan td { background: rgba(229,57,53,.06); }
+
+/* ====== THEME: LIGHT MODE ====== */
+:root {
+  --bg:#0d0d0d; --card:#111; --line:#2a2a2a; --text:#ddd;
+}
+.light body { background:#f6f7fb; color:#1e1f23; }
+.light .table-wrap { background:#fff; border-color:#e6e7ee; }
+.light thead th { background:#f1f2f7; border-bottom:1px solid #e6e7ee; color:#1e1f23; }
+.light tbody td { border-bottom:1px solid #eef0f6; color:#2a2b31; }
+.light .toolbar input, .light .toolbar select, .light .chip,
+.light .pager button, .light .pager select,
+.light .top-search, .light .btn.ghost,
+.light .topbar { background:#fff; color:#1e1f23; border-color:#e6e7ee; }
+.light .btn.ghost:hover { background:#f5f6fb; }
+.light .footer-pro .x-logo { filter: invert(1); } /* logo X tetap kebaca di light */
