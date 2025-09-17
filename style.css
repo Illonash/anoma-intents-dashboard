@@ -409,3 +409,10 @@ tr.highlight-xan td{ background:rgba(229,57,53,0.08) !important }
   .table tbody td:nth-child(n+6){ display:none; }
 }
 
+:root { --num-pr: 18px; }
+.table { table-layout: fixed !important; }
+.table thead th.num { text-align:right!important; padding-right:var(--num-pr)!important; }
+.table tbody td.num { text-align:right!important; padding-right:var(--num-pr)!important; font-variant-numeric:tabular-nums!important; font-feature-settings:"tnum" 1!important; }
+.table thead th.sortable { padding-right:var(--num-pr)!important; } /* ruang panah seragam */
+.sortable::after { pointer-events:none; right:6px!important; width:12px!important; }
+.table thead th, .table tbody td { padding-left:10px!important; }
