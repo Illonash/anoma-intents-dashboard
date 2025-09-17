@@ -39,6 +39,19 @@ body{
 .btn.ghost{ background:transparent }
 .btn.primary{ background:var(--red); border-color:#692224; color:#fff }
 .btn.mini{ padding:6px 8px; font-size:12px }
+/* TOPBAR – sedikit dibesarkan */
+.topbar .brand img{
+  width: 26px;     /* semula 20–22? naikin dikit */
+  height: 26px;
+  margin-right: 10px;
+  object-fit: contain;
+}
+
+.topbar .brand span{
+  font-size: 18px;   /* semula 16? naikin tipis */
+  font-weight: 700;
+  letter-spacing: .2px;
+}
 
 /* ===== TOOLBAR & TABLE ===== */
 .toolbar{
