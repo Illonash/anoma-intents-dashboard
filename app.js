@@ -48,21 +48,33 @@ const isPos      = (v)=> v!=null && v >= 0;
 /* ==============
    Data load
 ================= */
-async function loadData(){
-  // sesuaikan dengan repo kamu
-  const res = await fetch("assets/data/assets.json", { cache: "no-store" });
-  if (!res.ok) throw new Error("Assets JSON not found: "+res.status);
-  const arr = await res.json();
+async function loadData() {
+  // Deteksi base path saat di GitHub Pages (project pages)
+  // Contoh: https://illonash.github.io/anoma-intents-dashboard/...
+  const isGh = location.hostname.endsWith('github.io');
+  const repo = isGh ? `/${location.pathname.split('/')[1]}` : '';
+  const DATA_URL = `${repo}/assets/data/assets.json`;  // => /anoma-intents-dashboard/assets/data/assets.json di GH Pages
 
-  // pastikan struktur minimal
-  state.data = (arr||[]).map(a=>({
-    symbol: a.symbol,  name: a.name,
-    price: a.price,    change24h: a.change24h,
-    marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
-    sector: a.sector,  roi1m: a.roi1m, roi1y: a.roi1y,
-    tags: a.tags || [],
-    badge: a.badge, logo: a.logo
-  }));
+  try {
+    const res = await fetch(DATA_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`[fetch] ${DATA_URL} -> ${res.status}`);
+    const arr = await res.json();
+
+    state.data = (arr || []).map(a => ({
+      symbol: a.symbol,  name: a.name,
+      price: a.price,    change24h: a.change24h,
+      marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
+      sector: a.sector,  roi1m: a.roi1m, roi1y: a.roi1y,
+      tags: a.tags || [], badge: a.badge, logo: a.logo
+    }));
+  } catch (err) {
+    console.error('Data load failed:', err);
+    // Tampilkan pesan empty state supaya jelas
+    document.getElementById('cryptoEmpty')?.classList.remove('hidden');
+    document.getElementById('cryptoEmpty').textContent =
+      'Demo Error: assets/data/assets.json not found (cek path atau nama file).';
+    state.data = [];
+  }
 }
 
 /* ==============
