@@ -48,35 +48,63 @@ const isPos      = (v)=> v!=null && v >= 0;
 /* ==============
    Data load
 ================= */
-// ---- taruh ganti fungsi lama loadData() ----
+// FINAL loader: auto base-path, anti-cache, dan FALLBACK data
 async function loadData() {
-  // Deteksi base path saat di GitHub Pages (project pages)
-  // Contoh: https://illonash.github.io/anoma-intents-dashboard/
   const isGh = location.hostname.endsWith("github.io");
-  const base = isGh ? `/${location.pathname.split("/")[1]}` : "";
-  const DATA_URL = `${base}/assets/data/assets.json`; // <- final path
+  const repo = isGh ? `/${location.pathname.split("/")[1]}` : "";
+  const DATA_URL = `${location.origin}${repo}/assets/data/assets.json?v=${Date.now()}`;
 
-  // Fallback minimal agar UI tetap hidup kalau fetch gagal
+  // fallback minimal agar tabel tetap tampil
   const fallback = [
     {
       symbol: "BTC", name: "Bitcoin", price: 65000, change24h: -0.8,
       marketCap: 1.28e12, fdv: 1.28e12, volume24h: 3.5e10,
       sector: "Store of Value", roi1m: 5.3, roi1y: 40.1, tags: ["DeFi"],
-      logo: `${base}/assets/logo-btc.png`
+      logo: `${repo}/assets/logo-btc.png`
     },
     {
       symbol: "ETH", name: "Ethereum", price: 3200, change24h: 2.1,
       marketCap: 3.8e11, fdv: 3.8e11, volume24h: 1.8e10,
       sector: "Smart Contract", roi1m: 6.7, roi1y: 55.0, tags: ["DeFi","AI"],
-      logo: `${base}/assets/logo-eth.png`
+      logo: `${repo}/assets/logo-eth.png`
     },
     {
       symbol: "XAN", name: "Anoma Token", price: 1.25, change24h: 3.2,
       marketCap: 1.5e9, fdv: 2.5e9, volume24h: 5.6e8,
       sector: "Modular", roi1m: 12.5, roi1y: 85.3, tags: ["Anoma","ZK","Modular"],
-      logo: `${base}/assets/logo-xan.png`
+      logo: `${repo}/assets/logo-xan.png`
     }
   ];
+
+  try {
+    console.log("[data] try:", DATA_URL);
+    const res = await fetch(DATA_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`fetch ${DATA_URL} -> ${res.status}`);
+    const arr = await res.json();
+
+    state.data = (arr || []).map(a => ({
+      symbol: a.symbol,  name: a.name,
+      price: a.price,    change24h: a.change24h,
+      marketCap: a.marketCap, fdv: a.fdv, volume24h: a.volume24h,
+      sector: a.sector,  roi1m: a.roi1m, roi1y: a.roi1y,
+      tags: a.tags || [], badge: a.badge,
+      logo: a.logo ? (a.logo.startsWith("http") ? a.logo : `${repo}/${a.logo.replace(/^\/+/,"")}`) : ""
+    }));
+
+    if (!state.data.length) {
+      console.warn("[data] JSON kosong, pakai fallback");
+      state.data = fallback;
+    }
+  } catch (err) {
+    console.error("[data] gagal:", err);
+    const empty = document.getElementById("cryptoEmpty");
+    if (empty) {
+      empty.classList.remove("hidden");
+      empty.textContent = "Demo Error: assets/data/assets.json tidak ditemukan. Memakai data fallback.";
+    }
+    state.data = fallback;
+  }
+}
 
   try {
     console.log("[data] try fetch:", DATA_URL);
