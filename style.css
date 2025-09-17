@@ -118,3 +118,49 @@ tr.highlight-xan td { background: rgba(229,57,53,.06); }
 .light .topbar { background:#fff; color:#1e1f23; border-color:#e6e7ee; }
 .light .btn.ghost:hover { background:#f5f6fb; }
 .light .footer-pro .x-logo { filter: invert(1); } /* logo X tetap kebaca di light */
+
+/* ====== ALIGN KOLOM TABEL ====== */
+/* default: kiri semua */
+table thead th,
+table tbody td { text-align: left; }
+
+/* angka: kanan */
+table thead th.num,
+table tbody td.num { text-align: right; }
+
+/* paksa 3 kolom ini selalu kiri (Name / Sector / Tags) */
+table thead th:nth-child(3),
+table tbody td:nth-child(3),
+table thead th:nth-child(9),
+table tbody td:nth-child(9),
+table thead th:nth-child(12),
+table tbody td:nth-child(12) { text-align: left !important; }
+
+/* rapikan konten kolom Name (logo+teks sejajar) */
+table tbody td:nth-child(3) > div {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+
+/* ====== TOPBAR AKSEN MERAH (Anoma vibe) ====== */
+.topbar {
+  background: linear-gradient(180deg, #1a0d0f 0%, #12090b 100%);
+  border: 1px solid #351318;
+  box-shadow: 0 0 0 1px rgba(229,57,53,.08) inset, 0 6px 22px rgba(229,57,53,.06);
+}
+
+/* ====== FOOTER: "built by illonashanum" ====== */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap');
+
+.footer-pro {
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin:28px 0 40px; user-select:none;
+}
+.footer-pro .x-logo { width:28px; height:28px; object-fit:contain; transform:translateY(2px); }
+.footer-pro .built   { font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--text,#ddd); }
+.footer-pro .who     { font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:#66e3e6; }
+.light .footer-pro .x-logo { filter: invert(1); }
+
+/* ====== CATATAN DEMO DI BAWAH TABEL ====== */
+.note-demo {
+  margin-top:10px; font-size:12px; color:var(--muted,#9aa0a6);
+}
