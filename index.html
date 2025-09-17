@@ -2,175 +2,143 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Anoma Intents Dashboard (Demo)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Anoma Intents Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="assets/logo-xan.png" />
 </head>
 <body>
-  <!-- Header -->
+
+  <!-- Topbar singkat -->
   <header class="topbar">
     <div class="brand">
-      <img src="assets/logo-xan.png" alt="XAN Logo" class="logo" />
+      <img class="logo" src="assets/logo-xan.png" alt="XAN logo" />
       <h1>Anoma Intents Dashboard</h1>
     </div>
     <div class="actions">
-      <input id="globalSearch" type="search" placeholder="Search coins or fundraising..." />
-      <button id="themeToggle" class="ghost" title="Toggle theme">Theme</button>
-      <button id="loginBtn" class="ghost">Sign in</button>
+      <input id="searchInput" type="search" placeholder="Search coins or fundraising..." />
+      <button id="themeBtn" class="ghost">Theme</button>
+      <button class="ghost">Sign in</button>
     </div>
   </header>
 
-  <!-- Spotlight chips -->
-  <section class="spotlight" id="spotlightChips"></section>
+  <!-- Spotlight chips (dummy UI – opsional) -->
+  <div class="spotlight">
+    <button class="chip">Anoma</button>
+    <button class="chip">ZK</button>
+    <button class="chip">Modular</button>
+    <button class="chip">AI</button>
+    <button class="chip">RWA</button>
+    <button class="chip">DeFi</button>
+    <button class="chip">Meme</button>
+  </div>
 
   <!-- Tabs -->
-  <nav class="tabs" id="tabs">
+  <nav class="tabs">
     <button class="tab active" data-tab="crypto">Cryptocurrencies</button>
     <button class="tab" data-tab="fundraising">Fundraising</button>
   </nav>
 
   <main>
-    <!-- ===== CRYPTO LIST ===== -->
-    <section id="cryptoSection">
-      <div class="toolbar">
-        <div class="left">
-          <label>Sort by:
-            <select id="sortSelect">
-              <option value="marketCap:desc">Market Cap (desc)</option>
-              <option value="price:desc">Price (desc)</option>
-              <option value="change24h:desc">24h Change (desc)</option>
-              <option value="change24h:asc">24h Change (asc)</option>
-              <option value="roi1m:desc">1M ROI (desc)</option>
-              <option value="roi1y:desc">1Y ROI (desc)</option>
-            </select>
-          </label>
-        </div>
-        <div class="right">
-          <label><input type="checkbox" id="onlyWatchlist" /> Watchlist only</label>
-          <button id="btnTopGainers" class="ghost">Top Gainers</button>
-          <button id="btnTopLosers" class="ghost">Top Losers</button>
-        </div>
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div>
+        Sort by:
+        <select id="sortSelect">
+          <option value="marketCap|desc">Market Cap (desc)</option>
+          <option value="marketCap|asc">Market Cap (asc)</option>
+          <option value="price|desc">Price (desc)</option>
+          <option value="price|asc">Price (asc)</option>
+          <option value="change24h|desc">24h (desc)</option>
+          <option value="change24h|asc">24h (asc)</option>
+        </select>
       </div>
 
-      <div class="table-wrap">
-        <table id="cryptoTable" class="table">
-  <colgroup>
-    <col style="width:4%" />    <!-- ★ -->
-    <col style="width:7%" />    <!-- symbol -->
-    <col style="width:15%" />   <!-- name -->
-    <col style="width:9%" />    <!-- price -->
-    <col style="width:7%" />    <!-- 24h -->
-    <col style="width:11%" />   <!-- market cap -->
-    <col style="width:10%" />   <!-- fdv -->
-    <col style="width:10%" />   <!-- vol 24h -->
-    <col style="width:12%" />   <!-- sector -->
-    <col style="width:7%" />    <!-- roi 1m -->
-    <col style="width:7%" />    <!-- roi 1y -->
-    <col style="width:11%" />   <!-- tags -->
-  </colgroup>
-
-  <thead id="cryptoThead">
-    <tr>
-      <th>★</th>
-      <th class="sortable" data-key="symbol">Symbol</th>
-      <th class="sortable" data-key="name">Name</th>
-      <th class="sortable num" data-key="price">Price</th>
-      <th class="sortable num" data-key="change24h">24h</th>
-      <th class="sortable num" data-key="marketCap">Market Cap</th>
-      <th class="sortable num" data-key="fdv">FDV</th>
-      <th class="sortable num" data-key="volume24h">Vol 24h</th>
-      <th class="sortable" data-key="sector">Sector</th>
-      <th class="sortable num" data-key="roi1m">ROI 1M</th>
-      <th class="sortable num" data-key="roi1y">ROI 1Y</th>
-      <th>Tags</th>
-    </tr>
-  </thead>
-
-  <tbody id="cryptoTbody"></tbody>
-</table>
-
-        <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+      <div class="right-tools">
+        <label class="watch-only">
+          <input id="watchOnly" type="checkbox" />
+          Watchlist only
+        </label>
+        <button id="btnTopGainers" class="ghost">Top Gainers</button>
+        <button id="btnTopLosers" class="ghost">Top Losers</button>
       </div>
+    </div>
 
-      <!-- Pagination -->
-      <div class="pager">
-        <div class="pager-left">
-          <label>Rows per page
-            <select id="pageSize">
-              <option>10</option>
-              <option>20</option>
-              <option>50</option>
-            </select>
-          </label>
-          <span id="pageInfo" class="page-info">—</span>
-        </div>
-        <div class="pager-right">
-          <button id="firstPage" class="ghost">« First</button>
-          <button id="prevPage" class="ghost">‹ Prev</button>
-          <button id="nextPage" class="ghost">Next ›</button>
-          <button id="lastPage" class="ghost">Last »</button>
-        </div>
+    <!-- TABEL: 12 kolom SINKRON -->
+    <div class="table-wrap">
+      <table id="cryptoTable" class="table">
+        <colgroup>
+          <col style="width:4%"  />   <!-- ★ -->
+          <col style="width:7%"  />   <!-- Symbol -->
+          <col style="width:15%" />   <!-- Name -->
+          <col style="width:9%"  />   <!-- Price -->
+          <col style="width:7%"  />   <!-- 24h -->
+          <col style="width:11%" />   <!-- Market Cap -->
+          <col style="width:10%" />   <!-- FDV -->
+          <col style="width:10%" />   <!-- Vol 24h -->
+          <col style="width:12%" />   <!-- Sector -->
+          <col style="width:7%"  />   <!-- ROI 1M -->
+          <col style="width:7%"  />   <!-- ROI 1Y -->
+          <col style="width:11%" />   <!-- Tags -->
+        </colgroup>
+
+        <thead id="cryptoThead">
+          <tr>
+            <th>★</th>
+            <th class="sortable" data-key="symbol">Symbol</th>
+            <th class="sortable" data-key="name">Name</th>
+            <th class="sortable num" data-key="price">Price</th>
+            <th class="sortable num" data-key="change24h">24h</th>
+            <th class="sortable num" data-key="marketCap">Market Cap</th>
+            <th class="sortable num" data-key="fdv">FDV</th>
+            <th class="sortable num" data-key="volume24h">Vol 24h</th>
+            <th class="sortable" data-key="sector">Sector</th>
+            <th class="sortable num" data-key="roi1m">ROI 1M</th>
+            <th class="sortable num" data-key="roi1y">ROI 1Y</th>
+            <th>Tags</th>
+          </tr>
+        </thead>
+
+        <tbody id="cryptoTbody"></tbody>
+      </table>
+
+      <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+    </div>
+
+    <!-- Pager -->
+    <div class="pager">
+      <div class="pager-left">
+        <label>Rows per page
+          <select id="pageSize">
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+          </select>
+        </label>
+        <span class="page-info" id="pageInfo"></span>
       </div>
-
-      <!-- Note -->
-      <div class="note">note: demo only, data is simulated for the Anoma intents dashboard.</div>
-    </section>
-
-    <!-- ===== FUNDRAISING LIST ===== -->
-    <section id="fundraisingSection" class="hidden">
-      <ul id="fundraisingList" class="fund-list"></ul>
-      <div id="fundraisingEmpty" class="empty hidden">No results found.</div>
-    </section>
-
-    <!-- ===== DETAIL VIEW ===== -->
-    <section id="assetDetail" class="detail hidden">
-      <div class="detail-header">
-        <button id="detailBack" class="ghost">← Back</button>
-        <h2 id="detailTitle">Asset</h2>
+      <div class="pager-right">
+        <button id="btnFirst" class="ghost">First</button>
+        <button id="btnPrev" class="ghost">Prev</button>
+        <button id="btnNext" class="ghost">Next</button>
+        <button id="btnLast" class="ghost">Last</button>
       </div>
+    </div>
 
-      <div class="detail-grid">
-        <div class="detail-chart">
-          <iframe id="tvFrame" style="width:100%;height:420px;border:1px solid #222;border-radius:12px"
-                  src="" loading="lazy"></iframe>
-        </div>
-
-        <aside class="detail-side">
-          <div class="tabs-mini">
-            <button class="mini active" data-pane="news">News</button>
-            <button class="mini" data-pane="opinion">Opinion</button>
-            <button class="mini" data-pane="research">Research</button>
-          </div>
-          <div id="paneNews" class="pane"></div>
-          <div id="paneOpinion" class="pane hidden"></div>
-          <div id="paneResearch" class="pane hidden"></div>
-
-          <div class="swap-card">
-            <div class="swap-title">Swap (demo)</div>
-            <div class="swap-row">
-              <label>Amount <input id="dSwapAmount" type="number" value="100" min="0"></label>
-              <span id="dSwapFrom">—</span> <span>→</span> <span>XAN</span>
-              <button id="dSwapSim" class="ghost">Simulate</button>
-            </div>
-            <div id="dSwapResult" class="swap-result">—</div>
-          </div>
-        </aside>
-      </div>
-    </section>
+    <!-- Note -->
+    <p class="note">note: demo only, data is simulated for the Anoma intents dashboard.</p>
   </main>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-left">
-      <img src="assets/x-logo-dark.png" alt="X Logo" class="x-logo" />
+      <img class="x-logo" src="assets/x-logo-dark.png" alt="X" />
       <span class="powered">powered by</span>
-      <a class="owner" href="https://twitter.com/illonashanum" target="_blank" rel="noopener">illonashanum</a>
+      <a class="owner" href="https://x.com/illonashanum" target="_blank" rel="noreferrer">illonashanum</a>
     </div>
-    <div class="footer-right">
-      <span>Stay with intent. Stay with Anoma.</span>
-    </div>
+    <div class="footer-right">Stay with intent. Stay with Anoma.</div>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>
