@@ -94,6 +94,13 @@
     return rows;
   }
 
+const COIN_LOGO = {
+  BTC: 'assets/logo-btc.png',
+  ETH: 'assets/logo-eth.png',
+  BNB: 'assets/logo-bnb.png',
+  XAN: 'assets/logo-xan.png'
+};
+
   /* ---------- render table ---------- */
   function render(){
     const rows = filtered();
