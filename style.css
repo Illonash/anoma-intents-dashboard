@@ -1,78 +1,120 @@
-/* ===== Basics ===== */
-:root { --pos:#2bd67b; --neg:#ff5d5d; --border:#2a2a2a; --panel:#111; --panel2:#161616; --text:#ddd; --muted:#9aa0a6; }
-.light :root { --text:#111; --border:#e7e9ef; --panel:#fff; --panel2:#f4f6fb; --muted:#5f646b; }
+:root{
+  --bg:#0e0e10; --panel:#151518; --panel-2:#1a1b20;
+  --text:#e7e7ea; --muted:#9aa0a6; --red:#e53935; --red-2:#351318;
+  --green:#2ecc71; --cyan:#66e3e6; --border:#2b2c33;
+}
+.light:root{
+  --bg:#fafafa; --panel:#ffffff; --panel-2:#fafafa;
+  --text:#1b1c1f; --muted:#5f646b; --red:#d93025; --red-2:#fdecec;
+  --green:#1b8d56; --cyan:#1aa6aa; --border:#e6e7ec;
+}
+
 *{ box-sizing:border-box }
-body{ margin:0; background:#0d0d0d; color:var(--text); font:14px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+html,body{ height:100% }
+body{
+  margin:0; background:var(--bg); color:var(--text);
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
 
-/* ===== Table ===== */
-.table-wrap { overflow:auto; border-radius:10px; }
-table { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
-thead th, tbody td { padding:10px 12px; border-bottom:1px solid var(--border); white-space:nowrap; text-overflow:ellipsis; overflow:hidden; }
-thead th { position:sticky; top:0; background:var(--panel2); font-weight:600; }
-tbody tr:hover { background: rgba(255,255,255,.04); }
+.container{ width: min(1200px, 96%); margin: 20px auto 60px; }
 
-/* Alignment: angka kanan, text kiri */
+/* ===== TOPBAR ===== */
+.topbar{
+  background: linear-gradient(180deg, #1a0d0f 0%, #12090b 100%);
+  border-bottom:1px solid #351318;
+  box-shadow: 0 6px 22px rgba(229,57,53,.06);
+}
+.topbar .topbar-inner{
+  width: min(1200px, 96%); margin: 0 auto; padding: 10px 0;
+  display:flex; align-items:center; gap:12px; justify-content:space-between;
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:700 }
+.brand img{ width:20px; height:20px; }
+.actions{ display:flex; align-items:center; gap:8px }
+.search input{
+  width:360px; background:var(--panel-2); border:1px solid var(--border);
+  color:var(--text); padding:8px 10px; border-radius:8px;
+}
+.btn{ padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--panel-2); color:var(--text) }
+.btn.ghost{ background:transparent }
+.btn.primary{ background:var(--red); border-color:#692224; color:#fff }
+.btn.mini{ padding:6px 8px; font-size:12px }
+
+/* ===== TOOLBAR & TABLE ===== */
+.toolbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  margin:18px 0 10px;
+}
+.checkbox{ display:flex; gap:6px; align-items:center; }
+.toolbar-right{ display:flex; align-items:center; gap:10px }
+.select select{ background:var(--panel-2); color:var(--text); border:1px solid var(--border); border-radius:8px; padding:6px 8px }
+.chips .chip{ padding:6px 10px; border-radius:999px; background:var(--red-2); border:1px solid #502225; color:#ffb3b1; }
+
+.card{
+  background:var(--panel); border:1px solid var(--border);
+  border-radius:14px; padding:14px;
+}
+.table-wrap{ overflow:auto; border-radius:10px }
+table{ width:100%; border-collapse:separate; border-spacing:0 }
+thead th{
+  position:sticky; top:0; background:var(--panel-2);
+  padding:10px 12px; font-size:12px; text-transform:uppercase; letter-spacing:.4px;
+  border-bottom:1px solid var(--border);
+}
+tbody td{ padding:12px; border-top:1px solid var(--border) }
+
+/* alignment rules */
 table thead th, table tbody td { text-align:left; }
-table thead th.num, table tbody td.num { text-align:right; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+table thead th.num, table tbody td.num { text-align:right; }
+table thead th:nth-child(3),
+table tbody td:nth-child(3),
+table thead th:nth-child(9),
+table tbody td:nth-child(9),
+table thead th:nth-child(12),
+table tbody td:nth-child(12) { text-align:left !important; }
 
-/* Paksa kolom Name(3) / Sector(9) / Tags(12) tetap kiri */
-table thead th:nth-child(3), table tbody td:nth-child(3),
-table thead th:nth-child(9), table tbody td:nth-child(9),
-table thead th:nth-child(12), table tbody td:nth-child(12) { text-align:left !important; }
-
-/* Name cell: logo + teks rapat */
-table tbody td:nth-child(3) > div { display:inline-flex; align-items:center; gap:8px; }
-table tbody td:nth-child(3) img { width:18px; height:18px; border-radius:4px; }
-
-/* XAN highlight */
-tr.highlight-xan td { background: rgba(231,59,59,.06); }
-
-/* Watchlist star */
-.star { background:none; border:none; color:#777; font-size:14px; cursor:pointer; }
-.star.active { color:#ffb000; }
-
-/* Pager (opsional) */
-.pager { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:8px 0; }
-.pager .btn, .pager select {
-  padding:6px 10px; border-radius:6px; border:1px solid var(--border); background:var(--panel2); color:var(--text);
+/* name cell wrap */
+table tbody td:nth-child(3) > div{
+  display:inline-flex; align-items:center; gap:8px;
 }
+.badge-small{ font-size:11px; padding:2px 6px; border-radius:999px; background:#2b1b1c; color:#f09996; border:1px solid #5f2a2e }
 
-/* Note kecil di bawah pager */
-.note-demo, #noteDemo { margin:6px 2px 12px; font-size:12px; color:var(--muted); }
+.pager{ display:flex; align-items:center; justify-content:space-between; padding:10px 4px 0 }
+.pager-left,.pager-right{ display:flex; align-items:center; gap:8px }
 
-/* ===== Topbar aksen merah (jika ada .topbar) ===== */
-.topbar { background: linear-gradient(180deg,#1a0d0f 0%, #12090b 100%); border-bottom:1px solid #351318; box-shadow: 0 3px 0 #e53935 inset; }
-.topbar .brand { display:flex; align-items:center; gap:10px; padding:10px 12px; }
-.topbar .brand img { width:28px; height:28px; border-radius:6px; }
-.topbar .brand span { font-weight:800; font-size:20px; letter-spacing:.2px; }
-.topbar .topbar-right { display:flex; gap:8px; align-items:center; padding:10px 12px; }
-.topbar .search, #globalSearch, #q, #topSearch {
-  width:min(420px,46vw); padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--text);
+/* note kecil */
+.note-demo{ margin-top:10px; font-size:12px; color:var(--muted) }
+
+/* ===== MINI APPS ===== */
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:18px }
+@media (max-width: 980px){ .grid-2{ grid-template-columns:1fr } }
+
+.card-head h3{ margin:0 0 6px; font-size:18px; color:#ff6a6a }
+.card-head .muted{ margin:0 0 10px; color:var(--muted) }
+
+.form{ display:flex; flex-direction:column; gap:12px }
+.form .grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+@media (max-width: 680px){ .form .grid{ grid-template-columns:1fr } }
+.form label{ display:flex; flex-direction:column; gap:6px }
+.form input, .form select, .form textarea{
+  background:var(--panel-2); color:var(--text); border:1px solid var(--border);
+  border-radius:10px; padding:10px 12px; width:100%;
 }
-.btn, .btn-outline, .btn-primary { padding:8px 12px; border-radius:8px; border:1px solid var(--border); background:var(--panel2); color:var(--text); cursor:pointer; }
-.btn-outline:hover { background:#222; }
+.form textarea{ min-height:86px; resize:vertical }
+.row.gap{ display:flex; gap:10px; flex-wrap:wrap }
+.result{ margin-top:6px; font-size:13px; color:var(--cyan) }
 
-/* ===== Footer: built by illonashanum ===== */
-/* Kompatibel: kalau HTML-mu masih pakai .footer-pro .powered, kita styling keduanya */
+.steps{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px }
+.step{ border:1px dashed var(--border); border-radius:12px; padding:10px 12px; background:var(--panel-2) }
+.step p{ margin:4px 0 0; color:var(--muted) }
+
+/* ===== FOOTER ===== */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&display=swap');
-
-.footer-pro { display:flex; justify-content:center; align-items:center; gap:10px; margin:28px 0 40px; }
-.footer-pro .x-logo { width:26px; height:26px; object-fit:contain; }
-.footer-pro .powered,
-.footer-pro .built {
-  font-family: 'Orbitron', ui-sans-serif, system-ui;
-  font-weight: 700;
-  letter-spacing: .3px;
-  font-size: 15px;
-  color: #00f0ff; /* cyan/mint seperti contoh */
-  text-shadow: 0 0 6px rgba(0, 240, 255, 0.55);
+.footer-pro{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin:28px 0 40px; user-select:none;
 }
-.footer-pro a { color:#00f0ff; text-decoration:none; border-bottom:1px dashed rgba(0,240,255,.35); }
-.light .footer-pro .x-logo { filter: invert(1); }
-
-/* ===== Chips merah (opsional) ===== */
-.chip, .chip-red { border:1px solid rgba(229,57,53,.35); background:rgba(229,57,53,.10); color:#ff7a76; border-radius:999px; padding:6px 10px; }
-
-/* ===== Cards / panels (opsional untuk mini-app) ===== */
-.card { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
-.panel { background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:12px; }
+.footer-pro .x-logo{ width:28px; height:28px; object-fit:contain; transform:translateY(2px) }
+.footer-pro .built{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--text) }
+.footer-pro .who{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--cyan) }
+.light .footer-pro .x-logo{ filter:invert(1) }
