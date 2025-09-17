@@ -131,3 +131,11 @@ table tbody td:nth-child(3) > div{
 .footer-pro .built{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--text) }
 .footer-pro .who{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--cyan) }
 .light .footer-pro .x-logo{ filter:invert(1) }
+
+.token-logo {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  margin-right: 6px;
+  vertical-align: middle;
+}
