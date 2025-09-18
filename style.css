@@ -53,11 +53,14 @@ textarea, input[type="number"], input[type="text"]{width:100%;background:var(--p
 
 /* Table */
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:separate;border-spacing:0}
-thead th{font-weight:600;text-transform:uppercase;letter-spacing:.02em;color:#c9c9d2;background:var(--panel-2);position:sticky;top:0;z-index:2}
-thead th, tbody td{padding:10px 12px;border-bottom:1px solid var(--border)}
-tbody tr:hover{background:rgba(255,255,255,.02)}
+table{width:100%;border-collapse:collapse}
+thead th{background:var(--panel-2);color:#c9c9d2;font-weight:600}
+thead th, tbody td{padding:8px 10px;border-bottom:1px solid var(--border)}
+tbody tr:hover{background:rgba(255,255,255,0.05)}
 .num{text-align:right}
+
+.coin-logo{width:20px;height:20px;object-fit:contain;vertical-align:middle}
+.name-cell{display:inline-flex;align-items:center;gap:6px}
 
 /* Name + logo */
 .coin-logo{width:24px;height:24px;object-fit:contain;vertical-align:middle;flex:0 0 24px;border-radius:4px;image-rendering:auto}
