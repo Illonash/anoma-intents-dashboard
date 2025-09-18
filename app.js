@@ -154,14 +154,18 @@
       tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFdv, tdVol, tdSec, tdR1m, tdR1y, tdTags);
 
       // row click → (optional) detail modal — untuk demo cukup highlight
-      tr.addEventListener('click', ()=> {
-        // highlight baris sebentar
-        tr.style.background = 'rgba(229,57,53,.08)';
-        setTimeout(()=> tr.style.background='', 300);
-      });
+      tr.addEventListener('click', () => {
+  // highlight sebentar
+  tr.style.background = 'rgba(229,57,53,.08)';
+  setTimeout(() => (tr.style.background = ''), 300);
 
-      tb.appendChild(tr);
-    });
+  // pair default sederhana: kalau klik BTC → ke ETH, selain itu → ke BTC
+  const from = a.symbol;
+  const to   = (from === 'BTC') ? 'ETH' : 'BTC';
+
+  simulateSwap(from, to, 100);
+});
+
 
     // pager text
     $('#pageInfo').textContent = `${total? (start+1):0}–${Math.min(start+state.pageSize,total)} of ${total}`;
@@ -210,6 +214,25 @@
     const f = state.data.find(x=>x.symbol===sym);
     return f? (f.price||0) : 0;
   }
+// Isi form + hitung simulasi (dipakai saat klik baris tabel)
+function simulateSwap(from, to, amount = 100) {
+  // pastikan opsi select sudah ada
+  if (!$('#swapFrom') || !$('#swapTo')) return;
+
+  // isi form
+  $('#swapFrom').value   = from;
+  $('#swapTo').value     = to;
+  $('#swapAmount').value = amount;
+
+  // hitung hasil simulasi
+  const pFrom = getPrice(from) || 1;
+  const pTo   = getPrice(to)   || 1;
+  const out   = (amount * pFrom) / pTo;
+
+  // tampilkan hasil
+  $('#swapResult').textContent =
+    `Simulated: ${amount} ${from} ≈ ${out.toFixed(6)} ${to}  (px: ${fmtPrice(pFrom)} → ${fmtPrice(pTo)})`;
+}
   function fillTokenSelects(){
     const opts = allSymbols();
     const fill = (sel, def) => {
