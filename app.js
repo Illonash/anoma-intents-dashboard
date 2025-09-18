@@ -16,6 +16,13 @@
     theme: localStorage.getItem('theme') || 'dark'
   };
 
+const LOGO_MAP = {
+  BTC: 'assets/logo-btc.png',
+  ETH: 'assets/logo-eth.png',
+  BNB: 'assets/logo-bnb.png',
+  XAN: 'assets/logo-xan.png',
+};
+
   /* ---------- utils ---------- */
   const $ = sel => document.querySelector(sel);
   const $$ = sel => Array.from(document.querySelectorAll(sel));
@@ -37,13 +44,6 @@
     document.documentElement.classList.toggle('dark', t!=='light');
     localStorage.setItem('theme', t);
   }
-
-const LOGO_MAP = {
-  BTC: 'assets/logo-btc.png',
-  ETH: 'assets/logo-eth.png',
-  BNB: 'assets/logo-bnb.png',
-  XAN: 'assets/logo-xan.png',
-};
 
   /* ---------- data loading ---------- */
   async function loadData(){
