@@ -40,20 +40,6 @@ body{
 .btn.primary{ background:var(--red); border-color:#692224; color:#fff }
 .btn.mini{ padding:6px 8px; font-size:12px }
 
-/* TOPBAR – sedikit dibesarkan */
-.topbar .brand img{
-  width: 26px;     /* semula 20–22? naikin dikit */
-  height: 26px;
-  margin-right: 10px;
-  object-fit: contain;
-}
-
-.topbar .brand span{
-  font-size: 18px;   /* semula 16? naikin tipis */
-  font-weight: 700;
-  letter-spacing: .2px;
-}
-
 /* ===== TOOLBAR & TABLE ===== */
 .toolbar{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
@@ -76,13 +62,6 @@ thead th{
   border-bottom:1px solid var(--border);
 }
 tbody td{ padding:12px; border-top:1px solid var(--border) }
-/* paksa ukuran ikon di kolom Name */
-table tbody td:nth-child(3) img {
-  width: 18px;
-  height: 18px;
-  object-fit: contain;
-  border-radius: 4px;
-}
 
 /* alignment rules */
 table thead th, table tbody td { text-align:left; }
