@@ -1,272 +1,231 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Anoma Intents Dashboard</title>
-  <link rel="icon" href="assets/logo-xan.png" />
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="root dark">
 
-  <!-- ====== TOP BAR ====== -->
+  <!-- ===== Topbar ===== -->
   <header class="topbar">
-    <div class="topbar-inner">
-      <div class="brand">
-        <img src="assets/logo-xan.png" alt="XAN" />
-        <span>Anoma Intents Dashboard</span>
-      </div>
+    <div class="brand">
+      <img class="brand-mark" src="assets/logo-xan.png" alt="Anoma" />
+      <span class="brand-name">Anoma Intents Dashboard</span>
+    </div>
 
-      <div class="actions">
-        <div class="search">
-          <input id="q" type="search" placeholder="Search coins or fundraising..." />
-        </div>
-        <button id="btnTheme" class="btn ghost">Theme</button>
-        <button class="btn ghost" disabled>Sign in</button>
-      </div>
+    <div class="top-actions">
+      <input id="q" class="search" placeholder="Search coins or fundraising..." />
+      <button id="themeBtn" class="btn ghost">Theme</button>
+      <button class="btn ghost" disabled>Sign in</button>
     </div>
   </header>
 
+  <!-- Small red accent strip -->
+  <div class="accent"></div>
+
   <main class="container">
-    <!-- ====== FILTER BAR ====== -->
+    <!-- ===== Filter bar ===== -->
     <section class="toolbar">
-      <label class="checkbox">
-        <input id="onlyWatch" type="checkbox" />
-        <span>Watchlist only</span>
-      </label>
+      <label class="chk"><input type="checkbox" id="watchOnly"> Watchlist only</label>
 
-      <div class="toolbar-right">
-        <div class="select">
-          <label>Market Cap ▾</label>
-          <select id="sorter">
-            <option value="marketCap-desc">Market Cap (desc)</option>
-            <option value="marketCap-asc">Market Cap (asc)</option>
-            <option value="price-desc">Price (desc)</option>
-            <option value="price-asc">Price (asc)</option>
-            <option value="roi1m-desc">ROI 1M (desc)</option>
-            <option value="roi1y-desc">ROI 1Y (desc)</option>
-          </select>
-        </div>
-
-        <div class="chips">
-          <button class="chip" data-chip="gainers">Top Gainers</button>
-          <button class="chip" data-chip="losers">Top Losers</button>
-        </div>
+      <div class="sorters">
+        <label>Market Cap
+          <button id="sortCap" class="btn tiny">▼</button>
+        </label>
+        <button id="btnGainers" class="btn tiny pill">Top Gainers</button>
+        <button id="btnLosers" class="btn tiny pill">Top Losers</button>
       </div>
     </section>
 
-    <!-- ====== TABLE ====== -->
+    <!-- ===== Table ===== -->
     <section class="card">
       <div class="table-wrap">
         <table id="cryptoTable">
           <colgroup>
-            <col style="width:40px" />
-            <col style="width:90px" />
-            <col style="width:220px" />
-            <col style="width:120px" />
-            <col style="width:90px" />
-            <col style="width:130px" />
-            <col style="width:120px" />
-            <col style="width:120px" />
-            <col style="width:160px" />
-            <col style="width:100px" />
-            <col style="width:100px" />
-            <col style="width:auto" />
+            <col style="width:48px" />    <!-- star -->
+            <col style="width:88px" />    <!-- symbol -->
+            <col style="width:220px" />   <!-- name -->
+            <col style="width:120px" />   <!-- price -->
+            <col style="width:80px" />    <!-- 24h -->
+            <col style="width:120px" />   <!-- mcap -->
+            <col style="width:100px" />   <!-- fdv -->
+            <col style="width:110px" />   <!-- vol -->
+            <col style="width:160px" />   <!-- sector -->
+            <col style="width:90px" />    <!-- roi1m -->
+            <col style="width:90px" />    <!-- roi1y -->
+            <col style="width:auto" />    <!-- tags -->
           </colgroup>
-
           <thead id="cryptoThead">
             <tr>
               <th></th>
-              <th class="sortable" data-key="symbol">Symbol</th>
-              <th class="sortable" data-key="name">Name</th>
-              <th class="num sortable" data-key="price">Price</th>
-              <th class="num sortable" data-key="change24h">24h</th>
-              <th class="num sortable" data-key="marketCap">Market Cap</th>
-              <th class="num sortable" data-key="fdv">FDV</th>
-              <th class="num sortable" data-key="volume24h">Vol 24h</th>
-              <th class="sortable" data-key="sector">Sector</th>
-              <th class="num sortable" data-key="roi1m">ROI 1M</th>
-              <th class="num sortable" data-key="roi1y">ROI 1Y</th>
+              <th>Symbol</th>
+              <th>Name</th>
+              <th class="num">Price</th>
+              <th class="num">24h</th>
+              <th class="num">Market Cap</th>
+              <th class="num">FDV</th>
+              <th class="num">Vol 24h</th>
+              <th>Sector</th>
+              <th class="num">ROI 1M</th>
+              <th class="num">ROI 1Y</th>
               <th>Tags</th>
             </tr>
           </thead>
-
-          <tbody id="cryptoTbody"></tbody>
+          <tbody id="cryptoTBody"></tbody>
         </table>
-      </div>
-      
-      <!-- pager -->
-      <div class="pager">
-        <div class="pager-left">
-          <button class="btn mini" id="first">« First</button>
-          <button class="btn mini" id="prev">‹ Prev</button>
-          <span id="pageInfo">1–0 of 0</span>
-          <button class="btn mini" id="next">Next ›</button>
-          <button class="btn mini" id="last">Last »</button>
+
+        <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+
+        <!-- pager -->
+        <div class="pager">
+          <div class="pager-left">
+            <button id="pgFirst" class="btn tiny">&laquo; First</button>
+            <button id="pgPrev"  class="btn tiny">&lsaquo; Prev</button>
+            <span id="pageInfo" class="muted">0–0 of 0</span>
+            <button id="pgNext"  class="btn tiny">Next &rsaquo;</button>
+            <button id="pgLast"  class="btn tiny">Last &raquo;</button>
+          </div>
+          <div class="pager-right">
+            <label>Rows per page
+              <select id="pageSize">
+                <option>10</option>
+                <option>20</option>
+                <option>50</option>
+              </select>
+            </label>
+          </div>
         </div>
-        <div class="pager-right">
-          <label>Rows per page</label>
-          <select id="pageSize">
-            <option>10</option>
-            <option>20</option>
-            <option>50</option>
-          </select>
-        </div>
+
+        <!-- NOTE under pager -->
+        <p id="demoNote" class="note">note: demo only, data is simulated for the Anoma intents dashboard.</p>
       </div>
     </section>
 
-<div class="pager">  </div>
-<p class="note-demo" id="noteDemo">
-  note: demo only, data is simulated for the Anoma intents dashboard.
-</p>
+    <!-- ===== 2 demo panels to fill space ===== -->
+    <div class="panes">
+      <!-- Swap intents -->
+      <section class="card pane">
+        <h3>Intent-Based Token Swap</h3>
+        <p class="muted">Type your intent or fill the fields — simulation only.</p>
 
-    <!-- ====== MINI APPS (2 kolom) ====== -->
-    <section id="miniApps" class="grid-2">
-      <!-- Intent Token Swap -->
-      <div class="card">
-        <div class="card-head">
-          <h3>Intent-Based Token Swap</h3>
-          <p class="muted">Type your intent or fill the fields — simulation only.</p>
-        </div>
+        <label>Describe intent (optional)
+          <textarea id="swapIntent" placeholder='Example: "Convert 100 USDC to ETH"'></textarea>
+        </label>
 
-        <form id="swapForm" class="form">
-          <label class="w-full">
-            <span>Describe intent (optional)</span>
-            <textarea id="swapIntent" placeholder='Example: "Convert 100 USDC to ETH"'></textarea>
+        <div class="grid">
+          <label>Amount <input id="amt" type="number" min="0" value="100"/></label>
+          <label>From Token
+            <div class="select-wrap">
+              <select id="fromToken">
+                <option>ETH</option>
+                <option>BTC</option>
+                <option>USDC</option>
+              </select>
+              <span class="caret"></span>
+            </div>
+          </label>
+          <label>To Token
+            <div class="select-wrap">
+              <select id="toToken">
+                <option>BTC</option>
+                <option>ETH</option>
+                <option>USDC</option>
+              </select>
+              <span class="caret"></span>
+            </div>
           </label>
 
-          <div class="grid">
-            <label>
-              <span>Amount</span>
-              <input id="swapAmount" type="number" min="0" step="any" value="100" />
-            </label>
-            <label>
-              <span>From Token</span>
-              <select id="swapFrom"></select>
-            </label>
-            <label>
-              <span>To Token</span>
-              <select id="swapTo"></select>
-            </label>
-          </div>
-
-          <div class="grid">
-            <label>
-              <span>From Chain</span>
-              <select id="swapFromChain">
+          <label>From Chain
+            <div class="select-wrap">
+              <select id="fromChain">
+                <option>Ethereum</option>
+                <option>Cosmos</option>
+                <option>Polygon</option>
+              </select>
+              <span class="caret"></span>
+            </div>
+          </label>
+          <label>To Chain
+            <div class="select-wrap">
+              <select id="toChain">
                 <option>Ethereum</option>
                 <option>Cosmos (Osmosis)</option>
                 <option>Polygon</option>
-                <option>Solana</option>
               </select>
-            </label>
-            <label>
-              <span>To Chain</span>
-              <select id="swapToChain">
-                <option>Ethereum</option>
-                <option>Cosmos (Osmosis)</option>
-                <option>Polygon</option>
-                <option>Solana</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="grid">
-            <label>
-              <span>Max Fee (optional)</span>
-              <input id="swapFee" placeholder="e.g., 0.005 ETH or 2 USDC" />
-            </label>
-            <label>
-              <span>Deadline (minutes)</span>
-              <input id="swapDeadline" type="number" value="30" />
-            </label>
-          </div>
-
-          <div class="row gap">
-            <button type="submit" class="btn primary">Process Intent</button>
-            <button type="reset" class="btn">Reset</button>
-          </div>
-
-          <div id="swapResult" class="result"></div>
-        </form>
-
-        <div class="steps">
-          <div class="step"><b>1) Analyze Intent</b><p>Parse user intent & determine tokens.</p></div>
-          <div class="step"><b>2) Find Best Route</b><p>Search DEXes for optimal path & price.</p></div>
-          <div class="step"><b>3) Execute Swap</b><p>Perform transaction on selected route.</p></div>
-          <div class="step"><b>4) Confirm & Complete</b><p>Confirm result on-chain (simulated).</p></div>
-        </div>
-      </div>
-
-      <!-- Cross-Chain NFT Swap -->
-      <div class="card">
-        <div class="card-head">
-          <h3>Cross-Chain NFT Swap</h3>
-          <p class="muted">Declare your NFT intent — matching, bridging & settlement are simulated.</p>
-        </div>
-
-        <form id="nftForm" class="form">
-          <div class="grid">
-            <label>
-              <span>Collection</span>
-              <input id="nftCollection" placeholder="e.g., Shrimpers" />
-            </label>
-            <label>
-              <span>NFT ID</span>
-              <input id="nftId" placeholder="#1122" />
-            </label>
-          </div>
-
-          <label class="w-full">
-            <span>Target Asset</span>
-            <input id="nftTarget" placeholder="e.g., 0.1 ETH or ATOM" />
+              <span class="caret"></span>
+            </div>
           </label>
-
-          <div class="grid">
-            <label>
-              <span>From Chain</span>
-              <select id="nftFromChain">
-                <option>Ethereum</option>
-                <option>Polygon</option>
-                <option>Cosmos</option>
-              </select>
-            </label>
-            <label>
-              <span>To Chain</span>
-              <select id="nftToChain">
-                <option>Polygon</option>
-                <option>Ethereum</option>
-                <option>Cosmos</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="row gap">
-            <button type="submit" class="btn primary">Start NFT Swap</button>
-            <button type="reset" class="btn">Reset</button>
-          </div>
-
-          <div id="nftResult" class="result"></div>
-        </form>
-
-        <div class="steps">
-          <div class="step"><b>1) Determine NFTs</b><p>Extract collection, token ID, & target asset.</p></div>
-          <div class="step"><b>2) Find Matches</b><p>Search bids/offers across chains.</p></div>
-          <div class="step"><b>3) Bridge</b><p>Move asset to target chain (simulated).</p></div>
-          <div class="step"><b>4) Complete Swap</b><p>Finalize settlement & confirm.</p></div>
+          <label>Max Fee (optional) <input id="maxFee" placeholder="e.g., 0.005 ETH or 2 USDC"/></label>
+          <label>Deadline (minutes) <input id="deadline" type="number" min="1" value="30"/></label>
         </div>
-      </div>
-    </section>
 
-    <!-- ====== FOOTER ====== -->
-    <footer>
-      <div class="footer-pro">
-        <img class="x-logo" src="assets/x-logo-dark.png" alt="X">
-        <span class="built">built by</span>
-        <a class="who" href="https://x.com/illonashanum" target="_blank" rel="noopener">illonashanum</a>
-      </div>
-    </footer>
+        <div class="row gap">
+          <button id="btnProcess" class="btn primary">Process Intent</button>
+          <button id="btnResetSwap" class="btn ghost">Reset</button>
+        </div>
+
+        <ol class="steps">
+          <li><strong>Analyze Intent</strong> — Parse user intent & determine tokens.</li>
+          <li><strong>Find Best Route</strong> — Search DEXes for optimal path & price.</li>
+          <li><strong>Execute Swap</strong> — Perform transaction (simulated).</li>
+          <li><strong>Confirm & Complete</strong> — On-chain confirm (simulated).</li>
+        </ol>
+      </section>
+
+      <!-- NFT cross-chain swap -->
+      <section class="card pane">
+        <h3>Cross-Chain NFT Swap</h3>
+        <p class="muted">Declare your NFT intent — matching, bridging & settlement are simulated.</p>
+
+        <div class="grid">
+          <label>Collection <input id="nftCollection" placeholder="e.g., Shrimpers"/></label>
+          <label>NFT ID <input id="nftId" placeholder="#1122"/></label>
+          <label>Target Asset <input id="nftTarget" placeholder="e.g., 0.1 ETH or ATOM"/></label>
+
+          <label>From Chain
+            <div class="select-wrap">
+              <select id="nftFrom">
+                <option>Ethereum</option>
+                <option>Solana</option>
+              </select>
+              <span class="caret"></span>
+            </div>
+          </label>
+          <label>To Chain
+            <div class="select-wrap">
+              <select id="nftTo">
+                <option>Polygon</option>
+                <option>Cosmos</option>
+              </select>
+              <span class="caret"></span>
+            </div>
+          </label>
+        </div>
+
+        <div class="row gap">
+          <button id="btnStartNft" class="btn primary">Start NFT Swap</button>
+          <button id="btnResetNft" class="btn ghost">Reset</button>
+        </div>
+
+        <ol class="steps">
+          <li><strong>Determine NFTs</strong> — Extract collection, token ID, & target asset.</li>
+          <li><strong>Find Matches</strong> — Search bids/offers across chains.</li>
+          <li><strong>Bridge</strong> — Move asset to target chain (simulated).</li>
+          <li><strong>Complete Swap</strong> — Finalize settlement & confirm.</li>
+        </ol>
+      </section>
+    </div>
   </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer-pro identity">
+    <div class="built">
+      <img class="xlogo" src="assets/x-logo-light.png" alt="X" />
+      <span class="built-text">built by <a href="https://x.com/illonashanum" target="_blank" rel="noopener">illonashanum</a></span>
+    </div>
+  </footer>
 
   <script src="app.js"></script>
 </body>
