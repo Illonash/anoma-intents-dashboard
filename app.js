@@ -154,11 +154,19 @@
       tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFdv, tdVol, tdSec, tdR1m, tdR1y, tdTags);
 
       // row click → (optional) detail modal — untuk demo cukup highlight
-      tr.addEventListener('click', ()=> {
-        // highlight baris sebentar
-        tr.style.background = 'rgba(229,57,53,.08)';
-        setTimeout(()=> tr.style.background='', 300);
-      });
+      tr.addEventListener('click', () => {
+  // highlight sebentar
+  tr.style.background = 'rgba(229,57,53,.08)';
+  setTimeout(() => (tr.style.background = ''), 300);
+
+  // pair default: BTC→ETH, selain itu→BTC
+  const from = a.symbol;
+  const to   = (from === 'BTC') ? 'ETH' : 'BTC';
+
+  // jalankan simulasi; dibungkus supaya kalau ada miss form, tabel tetap aman
+  simulateSwap(from, to, 100);
+});
+
 
       tb.appendChild(tr);
     });
@@ -210,6 +218,33 @@
     const f = state.data.find(x=>x.symbol===sym);
     return f? (f.price||0) : 0;
   }
+// --- helper: isi form swap & hitung simulasi ---
+function simulateSwap(from, to, amount = 100) {
+  try {
+    const selFrom = document.querySelector('#swapFrom');
+    const selTo   = document.querySelector('#swapTo');
+    const amt     = document.querySelector('#swapAmount');
+    const outBox  = document.querySelector('#swapResult');
+
+    // kalau form belum ada, jangan bikin error
+    if (!selFrom || !selTo || !amt || !outBox) return;
+
+    selFrom.value = from;
+    selTo.value   = to;
+    amt.value     = amount;
+
+    const pFrom = getPrice(from) || 1;
+    const pTo   = getPrice(to)   || 1;
+    const out   = (amount * pFrom) / pTo;
+
+    outBox.textContent =
+      `Simulated: ${amount} ${from} ≈ ${out.toFixed(6)} ${to}  (px: ${fmtPrice(pFrom)} → ${fmtPrice(pTo)})`;
+  } catch (e) {
+    // jangan sampai error kecil mematikan render tabel
+    console.warn('simulateSwap failed:', e);
+  }
+}
+
   function fillTokenSelects(){
     const opts = allSymbols();
     const fill = (sel, def) => {
