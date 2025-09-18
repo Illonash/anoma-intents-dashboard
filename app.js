@@ -52,10 +52,10 @@
     }catch(e){
       // fallback minimal (kalau fetch 404)
       state.data = [
-        {symbol:'BTC', name:'Bitcoin', price:65000, change24h:-0.8, marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'], logo:'assets/coins/btc.png'},
-        {symbol:'ETH', name:'Ethereum', price:3200, change24h:2.1, marketCap:3.8e11, fdv:3.8e11, volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'], logo:'assets/coins/eth.png'},
-        {symbol:'BNB', name:'BNB', price:590, change24h:-1.2, marketCap:9.1e10, fdv:9.1e10, volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'], logo:'assets/coins/bnb.png'},
-        {symbol:'XAN', name:'Anoma', price:1.25, change24h:3.2, marketCap:1.5e9, fdv:2.5e9, volume24h:5.6e8, sector:'Modular', roi1m:12.5, roi1y:85.3, tags:['Anoma','ZK','Modular'], logo:'assets/logo-xan.png'}
+        {symbol:'BTC', name:'Bitcoin', price:117000, change24h:-0.8, marketCap:1.28e12, fdv:1.28e12, volume24h:3.5e10, sector:'Store of Value', roi1m:5.3, roi1y:40.1, tags:['DeFi'], logo:'assets/logo-btc.png'},
+        {symbol:'ETH', name:'Ethereum', price:4570, change24h:2.1, marketCap:3.8e11, fdv:3.8e11, volume24h:1.8e10, sector:'Smart Contract', roi1m:6.7, roi1y:55.0, tags:['DeFi','AI'], logo:'assets/logo-eth.png'},
+        {symbol:'BNB', name:'BNB', price:994, change24h:-1.2, marketCap:9.1e10, fdv:9.1e10, volume24h:1.2e10, sector:'Exchange Token', roi1m:2.8, roi1y:25.7, tags:['DeFi'], logo:'assets/logo-bnb.png'},
+        {symbol:'XAN', name:'Anoma', price:1.25, change24h:3.2, marketCap:1.5e9, fdv:2.5e9, volume24h:5.6e8, sector:'Modular', roi1m:12.5, roi1y:85.3, tags:['Anoma'], logo:'assets/logo-xan.png'}
       ];
     }
   }
