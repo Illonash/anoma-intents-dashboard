@@ -268,6 +268,18 @@
     </footer>
   </main>
 
+<!-- Command Palette (Intent Mode) -->
+<div id="intentOverlay" class="overlay hidden">
+  <div class="palette">
+    <input id="intentInput" type="text" placeholder="ketik intent… contoh: swap 100 usdc → xan / top gainer modular" />
+    <div id="intentPreview" class="preview">hint: enter untuk apply, esc untuk tutup</div>
+    <div class="actions">
+      <button id="intentApply" class="ghost">Apply</button>
+      <button id="intentClose" class="ghost">Close</button>
+    </div>
+  </div>
+</div>
+
   <script src="app.js"></script>
 </body>
 </html>
