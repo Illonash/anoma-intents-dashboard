@@ -153,15 +153,23 @@
 
       tr.append(tdStar, tdSym, tdName, tdPrice, tdChg, tdMc, tdFdv, tdVol, tdSec, tdR1m, tdR1y, tdTags);
 
-      // row click → (optional) detail modal — untuk demo cukup highlight
       tr.addEventListener('click', ()=> {
-        // highlight baris sebentar
-        tr.style.background = 'rgba(229,57,53,.08)';
-        setTimeout(()=> tr.style.background='', 300);
-      });
+  // highlight sebentar
+  tr.style.background = 'rgba(229,57,53,.08)';
+  setTimeout(()=> tr.style.background='', 300);
 
-      tb.appendChild(tr);
-    });
+  // isi form swap otomatis
+  $('#swapFrom').value = a.symbol;
+  $('#swapTo').value = (a.symbol === 'BTC' ? 'ETH' : 'BTC'); // default pairing
+  $('#swapAmount').value = 100;
+
+  // langsung kasih hasil simulasi kecil
+  const pFrom = getPrice(a.symbol) || 1;
+  const pTo   = getPrice($('#swapTo').value) || 1;
+  const out   = (100 * pFrom) / pTo;
+  $('#swapResult').textContent =
+    `Simulated: 100 ${a.symbol} ≈ ${out.toFixed(6)} ${$('#swapTo').value}`;
+});
 
     // pager text
     $('#pageInfo').textContent = `${total? (start+1):0}–${Math.min(start+state.pageSize,total)} of ${total}`;
