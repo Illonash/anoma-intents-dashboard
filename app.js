@@ -152,15 +152,6 @@ function getSlice(){
 /* =============================
    Render ALL
 ============================= */
-function renderAll(){
-  VIEW = applySort(applyFilter());
-  page = Math.min(page, totalPages());
-  renderCrypto();
-}
-
-/* =============================
-   Render table (FINAL)
-============================= */
 function renderCrypto(){
   cryptoTBody.innerHTML = "";
   cryptoEmpty.classList.add("hidden");
@@ -168,140 +159,54 @@ function renderCrypto(){
   const slice = getSlice();
   if (!slice.length){
     cryptoEmpty.classList.remove("hidden");
-    document.getElementById("pageInfo").textContent = "0–0 of 0";
+    pageInfo.textContent = "0–0 of 0";
     return;
   }
-  document.getElementById("pageInfo").textContent = pageInfoText();
+  pageInfo.textContent = pageInfoText();
 
   slice.forEach(a=>{
     const tr = document.createElement("tr");
-    tr.style.cursor = "pointer";
-    if (a.symbol === "XAN") tr.classList.add("highlight-xan");
 
-    // star
+    // watchlist star
     const tdStar = document.createElement("td");
-    const star = document.createElement("button");
-    star.className = "star" + (watchlist.has(a.symbol) ? " active":"");
-    star.title = "Toggle watchlist";
-    star.addEventListener("click",(ev)=>{
-      ev.stopPropagation();
-      if (watchlist.has(a.symbol)) watchlist.delete(a.symbol);
-      else watchlist.add(a.symbol);
-      renderAll();
-    });
-    tdStar.appendChild(star);
+    tdStar.innerHTML = `<button class="star ${watchlist.has(a.symbol)?"active":""}"></button>`;
 
-    // symbol (+badge)
+    // symbol
     const tdSym = document.createElement("td");
-    tdSym.textContent = a.symbol || "-";
-    if (a.badge){
-      const b = document.createElement("span");
-      b.className = "badge badge-small";
-      b.style.marginLeft = "8px";
-      b.textContent = a.badge;
-      tdSym.appendChild(b);
-    }
+    tdSym.textContent = a.symbol;
 
-    // name (logo + text)
+    // name + logo
     const tdName = document.createElement("td");
-    tdName.setAttribute("data-col","name");
-    const wrap = document.createElement("span");
-    wrap.className = "name-cell";
-    const img = document.createElement("img");
-    img.className = "coin-logo";
-    img.src = getLogoSrc(a);
-    img.alt = a.name || a.symbol || "";
-    img.onerror = ()=>{ img.style.visibility="hidden"; };
-    const nm = document.createElement("span");
-    nm.textContent = a.name || a.symbol || "-";
-    wrap.appendChild(img);
-    wrap.appendChild(nm);
-    tdName.appendChild(wrap);
+    tdName.innerHTML = `
+      <span class="name-cell">
+        <img class="coin-logo" src="${getLogoSrc(a)}" alt="${a.name}" onerror="this.style.display='none'"/>
+        <span>${a.name}</span>
+      </span>`;
 
-    // price
-    const tdPrice = tdNum(a.price!=null ? formatMoney(a.price) : "-");
+    // numeric cols
+    const tdPrice = tdNum(formatMoney(a.price));
+    const td24    = tdNum(a.change24h!=null? a.change24h.toFixed(2)+"%":"-");
+    if (a.change24h!=null) td24.classList.add(a.change24h>=0?"pos":"neg");
 
-    // 24h
-    const td24 = tdNum(a.change24h!=null ? `${a.change24h.toFixed(2)}%` : "-");
-    if (typeof a.change24h==="number"){
-      td24.classList.add(a.change24h>=0 ? "pos":"neg","pctClass");
-    }
+    const tdMcap  = tdNum(formatAbbr(a.marketCap));
+    const tdFdv   = tdNum(formatAbbr(a.fdv));
+    const tdVol   = tdNum(formatAbbr(a.volume24h));
 
-    // mcap
-    const tdM = tdNum(a.marketCap!=null ? formatAbbr(a.marketCap) : "-");
+    const tdSec   = document.createElement("td");
+    tdSec.textContent = a.sector||"-";
 
-    // fdv
-    const tdF = tdNum(a.fdv!=null ? formatAbbr(a.fdv) : "-");
+    const tdRoiM  = tdNum(a.roi1m!=null? a.roi1m.toFixed(2)+"%":"-");
+    if (a.roi1m!=null) tdRoiM.classList.add(a.roi1m>=0?"pos":"neg");
+    const tdRoiY  = tdNum(a.roi1y!=null? a.roi1y.toFixed(2)+"%":"-");
+    if (a.roi1y!=null) tdRoiY.classList.add(a.roi1y>=0?"pos":"neg");
 
-    // vol
-    const tdV = tdNum(a.volume24h!=null ? formatAbbr(a.volume24h) : "-");
+    const tdTags  = document.createElement("td");
+    tdTags.textContent = Array.isArray(a.tags)? a.tags.join(", "): (a.tags||"-");
 
-    // sector
-    const tdSec = document.createElement("td");
-    tdSec.textContent = a.sector || "-";
-    tdSec.title = a.sector || "";
-
-    // roi1m
-    const tdR1m = tdNum(a.roi1m!=null ? `${a.roi1m.toFixed(2)}%` : "-");
-    if (typeof a.roi1m==="number"){
-      tdR1m.classList.add(a.roi1m>=0 ? "pos":"neg","pctClass");
-    }
-
-    // roi1y
-    const tdR1y = tdNum(a.roi1y!=null ? `${a.roi1y.toFixed(2)}%` : "-");
-    if (typeof a.roi1y==="number"){
-      tdR1y.classList.add(a.roi1y>=0 ? "pos":"neg","pctClass");
-    }
-
-    // tags
-    const tdTags = document.createElement("td");
-    const tagsText = Array.isArray(a.tags) ? a.tags.join(", ") : (a.tags || "");
-    tdTags.textContent = tagsText || "-";
-    tdTags.title = tagsText;
-
-    tr.append(tdStar, tdSym, tdName, tdPrice, td24, tdM, tdF, tdV, tdSec, tdR1m, tdR1y, tdTags);
-
-    // klik row -> detail (demo)
-    tr.addEventListener("click", ()=>openAssetDetail(a));
-
+    tr.append(tdStar, tdSym, tdName, tdPrice, td24, tdMcap, tdFdv, tdVol, tdSec, tdRoiM, tdRoiY, tdTags);
     cryptoTBody.appendChild(tr);
   });
 }
-function tdNum(text){
-  const td = document.createElement("td");
-  td.className = "num";
-  td.textContent = text;
-  return td;
-}
-
-/* =============================
-   Detail panel (demo)
-============================= */
-function openAssetDetail(a){
-  // di versi demo ini cukup log; (kalau kamu punya panel detail, panggil di sini)
-  console.log("open detail:", a.symbol);
-}
-
-/* =============================
-   Utils
-============================= */
-function formatMoney(v){
-  if (v == null || isNaN(v)) return "-";
-  const n = Math.abs(v);
-  if (n>=1e12) return `$${(v/1e12).toFixed(2)}T`;
-  if (n>=1e9)  return `$${(v/1e9).toFixed(2)}B`;
-  if (n>=1e6)  return `$${(v/1e6).toFixed(2)}M`;
-  if (n>=1e3)  return `$${(v/1e3).toFixed(2)}K`;
-  return `$${Number(v).toLocaleString()}`;
-}
-function formatAbbr(v){
-  if (v == null || isNaN(v)) return "-";
-  const n = Math.abs(v);
-  if (n>=1e12) return `${(v/1e12).toFixed(2)}T`;
-  if (n>=1e9)  return `${(v/1e9).toFixed(2)}B`;
-  if (n>=1e6)  return `${(v/1e6).toFixed(2)}M`;
-  if (n>=1e3)  return `${(v/1e3).toFixed(2)}K`;
-  return `${Number(v).toLocaleString()}`;
 }
 
 /* =============================
