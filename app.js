@@ -136,9 +136,18 @@ const LOGO_MAP = {
       // name (logo + text)
       const tdName = document.createElement('td');
       const wrap = document.createElement('div');
-      if(a.logo){ const img = new Image(); img.src = a.logo; img.width=18; img.height=18; img.style.borderRadius='4px'; wrap.appendChild(img); }
-      const nm = document.createElement('span'); nm.textContent = a.symbol==='XAN' ? 'Anoma' : (a.name||'-'); wrap.appendChild(nm);
-      tdName.appendChild(wrap);
+      // sebelum
+if (a.logo) { const img = new Image(); img.src = a.logo; ... }
+
+// setelah (aman jika logo kosong)
+const logoSrc = a.logo || LOGO_MAP[a.symbol];
+if (logoSrc) {
+  const img = new Image();
+  img.src = logoSrc;
+  img.width = 18; img.height = 18;
+  img.style.borderRadius = '4px';
+  wrap.appendChild(img);
+}
 
       // numerics
       const tdPrice = document.createElement('td'); tdPrice.className = 'num'; tdPrice.textContent = fmtPrice(a.price);
