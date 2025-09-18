@@ -38,6 +38,13 @@
     localStorage.setItem('theme', t);
   }
 
+const LOGO_MAP = {
+  BTC: 'assets/logo-btc.png',
+  ETH: 'assets/logo-eth.png',
+  BNB: 'assets/logo-bnb.png',
+  XAN: 'assets/logo-xan.png',
+};
+
   /* ---------- data loading ---------- */
   async function loadData(){
     // data demo
