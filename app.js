@@ -136,12 +136,15 @@ const LOGO_MAP = {
       // name (logo + text)
       const tdName = document.createElement('td');
       const wrap = document.createElement('div');
-      const img = new Image();
-img.src = a.logo || LOGO_MAP[a.symbol] || 'assets/logo-xan.png';
-img.width = 18; img.height = 18; img.loading = 'lazy';
-img.style.borderRadius = '4px';
-wrap.appendChild(img);
-
+      if (a.logo || LOGO_MAP[a.symbol]) {
+  const img = new Image();
+  img.src = a.logo || LOGO_MAP[a.symbol];
+  img.width = 18;
+  img.height = 18;
+  img.loading = 'lazy';
+  img.style.borderRadius = '4px';
+  wrap.appendChild(img);
+}
 
       // numerics
       const tdPrice = document.createElement('td'); tdPrice.className = 'num'; tdPrice.textContent = fmtPrice(a.price);
