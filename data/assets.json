@@ -14,7 +14,7 @@
   "badge": "Official · Anoma",
   "logo": "assets/logo-xan.png"
 },
-  {
+{
   "symbol": "BTC",
   "name": "Bitcoin",
   "price": 65000,
@@ -56,7 +56,7 @@
   "tags": ["DeFi"],
   "logo": "assets/logo-bnb.png"
 },
-  {
+{
     "symbol": "SOL",
     "name": "Solana",
     "price": 145,
