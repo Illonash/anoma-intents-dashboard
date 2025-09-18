@@ -113,3 +113,29 @@ body {
   font-weight: 700;
   letter-spacing: .04em;
 }
+
+/* ==== Coin logo sizing & alignment ==== */
+.coin-logo{
+  width: 28px;              /* atur ke 24–32 px sesuai selera */
+  height: 28px;
+  object-fit: contain;      /* jaga proporsi logo */
+  vertical-align: middle;
+  flex: 0 0 28px;           /* biar tidak melar */
+  border-radius: 4px;       /* optional: bikin agak rounded */
+  image-rendering: auto;    /* haluskan saat di-resize */
+}
+
+/* wadah teks+logo di kolom Name */
+.name-cell{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;                 /* jarak logo ↔ teks */
+  min-width: 0;             /* cegah overflow aneh */
+}
+
+/* jaga td Name tidak “mendorong” kolom lain */
+td[data-col="name"]{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
