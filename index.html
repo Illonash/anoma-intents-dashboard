@@ -41,42 +41,53 @@
 
     <!-- ===== Table ===== -->
     <section class="card">
-      <div class="table-wrap">
-        <table id="cryptoTable">
-          <colgroup>
-            <col style="width:48px" />    <!-- star -->
-            <col style="width:88px" />    <!-- symbol -->
-            <col style="width:220px" />   <!-- name -->
-            <col style="width:120px" />   <!-- price -->
-            <col style="width:80px" />    <!-- 24h -->
-            <col style="width:120px" />   <!-- mcap -->
-            <col style="width:100px" />   <!-- fdv -->
-            <col style="width:110px" />   <!-- vol -->
-            <col style="width:160px" />   <!-- sector -->
-            <col style="width:90px" />    <!-- roi1m -->
-            <col style="width:90px" />    <!-- roi1y -->
-            <col style="width:auto" />    <!-- tags -->
-          </colgroup>
-          <thead id="cryptoThead">
-            <tr>
-              <th></th>
-              <th>Symbol</th>
-              <th>Name</th>
-              <th class="num">Price</th>
-              <th class="num">24h</th>
-              <th class="num">Market Cap</th>
-              <th class="num">FDV</th>
-              <th class="num">Vol 24h</th>
-              <th>Sector</th>
-              <th class="num">ROI 1M</th>
-              <th class="num">ROI 1Y</th>
-              <th>Tags</th>
-            </tr>
-          </thead>
-          <tbody id="cryptoTBody"></tbody>
-        </table>
+  <div class="table-wrap">
+    <table id="cryptoTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Symbol</th>
+          <th>Name</th>
+          <th class="num">Price</th>
+          <th class="num">24h</th>
+          <th class="num">Market Cap</th>
+          <th class="num">FDV</th>
+          <th class="num">Vol 24h</th>
+          <th>Sector</th>
+          <th class="num">ROI 1M</th>
+          <th class="num">ROI 1Y</th>
+          <th>Tags</th>
+        </tr>
+      </thead>
+      <tbody id="cryptoTBody"></tbody>
+    </table>
 
-        <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+    <div id="cryptoEmpty" class="empty hidden">No results found.</div>
+
+    <!-- pager -->
+    <div class="pager">
+      <div>
+        <button id="pgFirst" class="btn tiny">&laquo; First</button>
+        <button id="pgPrev" class="btn tiny">&lsaquo; Prev</button>
+        <span id="pageInfo" class="muted">0–0 of 0</span>
+        <button id="pgNext" class="btn tiny">Next &rsaquo;</button>
+        <button id="pgLast" class="btn tiny">Last &raquo;</button>
+      </div>
+      <div>
+        <label>Rows per page
+          <select id="pageSize">
+            <option>10</option>
+            <option>20</option>
+            <option>50</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <!-- NOTE pindah ke bawah pager -->
+    <p id="demoNote" class="note">note: demo only, data is simulated for the Anoma intents dashboard.</p>
+  </div>
+</section>
 
         <!-- pager -->
         <div class="pager">
