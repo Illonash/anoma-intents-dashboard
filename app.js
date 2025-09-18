@@ -1,322 +1,333 @@
-/* Anoma Intents Dashboard – app.js (final) */
-
-/* -------------------------
-   DOM hooks
-------------------------- */
-const $ = (s, p = document) => p.querySelector(s);
-const $$ = (s, p = document) => [...p.querySelectorAll(s)];
-
-const cryptoTable = $("#cryptoTable");
-const cryptoHead = $("#cryptoThead");
-const cryptoBody = $("#cryptoTbody");
-const cryptoEmpty = $("#cryptoEmpty");
-
-const searchBox = $("#searchBox");
-const sortSelect = $("#sortSelect");
-const filterWatchlist = $("#filterWatchlist");
-const btnTopGainers = $("#btnTopGainers");
-const btnTopLosers = $("#btnTopLosers");
-
-const pager = {
-  root: $("#pager"),
-  info: $("#pageInfo"),
-  first: $("#btnFirst"),
-  prev: $("#btnPrev"),
-  next: $("#btnNext"),
-  last: $("#btnLast"),
-  size: $("#pageSize"),
+/* =============================
+   State & constants
+============================= */
+const PATHS = {
+  assets: "assets/data/assets.json",
+  sectors: "assets/data/sectors.json",
+  fundraising: "assets/data/fundraising.json",
 };
 
-/* -------------------------
-   State
-------------------------- */
-let allAssets = [];     // full dataset
-let viewAssets = [];    // filtered+sorted
+let RAW = [];           // semua rows
+let VIEW = [];          // hasil filter/sort
 let page = 1;
 let pageSize = 10;
-const watchlist = new Set(JSON.parse(localStorage.getItem("watchlist") || "[]"));
+let sortKey = "marketCap";
+let sortDir = "desc";
+const watchlist = new Set();
 
-/* -------------------------
-   Helpers
-------------------------- */
-
-// logo mapping (pakai nama file yang sudah kamu upload di /assets)
-const logoMap = {
+/* ===== Logo map & helper ===== */
+const LOGO_MAP = {
   BTC: "assets/logo-btc.png",
   ETH: "assets/logo-eth.png",
   BNB: "assets/logo-bnb.png",
   XAN: "assets/logo-xan.png",
 };
-
-const fmt = {
-  num(n) {
-    if (n == null || isNaN(n)) return "-";
-    if (Math.abs(n) >= 1e12) return (n / 1e12).toFixed(2) + "T";
-    if (Math.abs(n) >= 1e9) return (n / 1e9).toFixed(2) + "B";
-    if (Math.abs(n) >= 1e6) return (n / 1e6).toFixed(2) + "M";
-    if (Math.abs(n) >= 1e3) return (n / 1e3).toFixed(2) + "K";
-    return String(Math.round(n));
-  },
-  usd(n) {
-    if (n == null || isNaN(n)) return "-";
-    if (n >= 1000) return "$" + this.num(n);
-    return "$" + n.toLocaleString();
-  },
-  pct(n) {
-    if (n == null || isNaN(n)) return "-";
-    const sign = n > 0 ? "+" : "";
-    return sign + n.toFixed(2) + "%";
-  },
-};
-
-function persistWatchlist() {
-  localStorage.setItem("watchlist", JSON.stringify([...watchlist]));
+function getLogoSrc(a){
+  if (a && typeof a.logo === "string" && a.logo.trim() !== "") return a.logo;
+  const m = a?.symbol ? LOGO_MAP[a.symbol.toUpperCase()] : null;
+  return m || "assets/logo-xan.png";
 }
 
-function applyFilters() {
-  const q = (searchBox.value || "").trim().toLowerCase();
+/* ===== DOM ===== */
+const cryptoTBody = document.getElementById("cryptoTBody");
+const cryptoEmpty = document.getElementById("cryptoEmpty");
+const pageInfo     = document.getElementById("pageInfo");
+const pageSizeSel  = document.getElementById("pageSize");
+const sortCapBtn   = document.getElementById("sortCap");
+const qInput       = document.getElementById("q");
+const watchOnlyBox = document.getElementById("watchOnly");
 
-  viewAssets = allAssets.filter(a => {
-    if (filterWatchlist.checked && !watchlist.has(a.symbol)) return false;
-    if (!q) return true;
-    // cari di symbol, name, sector, tags
-    const hay = `${a.symbol} ${a.name} ${a.sector} ${(a.tags || []).join(" ")}`.toLowerCase();
-    return hay.includes(q);
-  });
+const pgFirst = document.getElementById("pgFirst");
+const pgPrev  = document.getElementById("pgPrev");
+const pgNext  = document.getElementById("pgNext");
+const pgLast  = document.getElementById("pgLast");
 
-  // top gainers/losers quick filter (optional; only when button toggled)
-  if (btnTopGainers?.dataset.active === "1") {
-    viewAssets = [...viewAssets].sort((a, b) => (b.change24h ?? -Infinity) - (a.change24h ?? -Infinity)).slice(0, 10);
+document.getElementById("btnGainers").addEventListener("click", ()=>{ sortKey="change24h"; sortDir="desc"; page=1; renderAll();});
+document.getElementById("btnLosers").addEventListener("click",  ()=>{ sortKey="change24h"; sortDir="asc";  page=1; renderAll();});
+sortCapBtn.addEventListener("click", ()=>{ sortKey="marketCap"; sortDir = (sortDir==="desc" ? "asc":"desc"); page=1; renderAll();});
+
+pageSizeSel.addEventListener("change", ()=>{ pageSize = +pageSizeSel.value || 10; page=1; renderAll(); });
+pgFirst.addEventListener("click", ()=>{ page=1; renderAll();});
+pgPrev .addEventListener("click", ()=>{ page=Math.max(1,page-1); renderAll();});
+pgNext .addEventListener("click", ()=>{ page=Math.min(totalPages(),page+1); renderAll();});
+pgLast .addEventListener("click", ()=>{ page=totalPages(); renderAll();});
+
+qInput.addEventListener("input", ()=>{ page=1; renderAll(); });
+watchOnlyBox.addEventListener("change", ()=>{ page=1; renderAll(); });
+
+/* ===== Theme toggle ===== */
+document.getElementById("themeBtn").addEventListener("click", ()=>{
+  const root = document.querySelector(".root");
+  root.classList.toggle("dark");
+  // swap x-logo di footer agar kontras
+  const x = document.querySelector(".xlogo");
+  if (!x) return;
+  x.src = root.classList.contains("dark") ? "assets/x-logo-light.png" : "assets/x-logo-dark.png";
+});
+
+/* =============================
+   Data load
+============================= */
+(async function init(){
+  try{
+    RAW = await fetchJson(PATHS.assets);
+  }catch(e){
+    console.error("Load assets failed:", e);
+    RAW = [];
   }
-  if (btnTopLosers?.dataset.active === "1") {
-    viewAssets = [...viewAssets].sort((a, b) => (a.change24h ?? Infinity) - (b.change24h ?? Infinity)).slice(0, 10);
-  }
+  // normalize
+  RAW = (RAW||[]).map(x => ({
+    symbol: x.symbol,
+    name: (x.name || x.symbol || "").replace(/ Token$/i,""), // hapus "Token"
+    price: num(x.price),
+    change24h: num(x.change24h),
+    marketCap: num(x.marketCap),
+    fdv: num(x.fdv),
+    volume24h: num(x.volume24h),
+    sector: x.sector || "",
+    roi1m: num(x.roi1m),
+    roi1y: num(x.roi1y),
+    tags: x.tags || [],
+    logo: x.logo || "",        // biarkan jika ada di JSON
+    badge: x.badge || "",      // opsional
+  }));
 
-  // sorting
-  const key = sortSelect.value;
-  const desc = key.endsWith("(desc)");
-  const sortKey = key.replace(" (desc)", "").replace(" (asc)", "");
+  renderAll();
+})();
 
-  const getter = (a) => {
-    switch (sortKey) {
-      case "Market Cap": return a.marketCap;
-      case "Price": return a.price;
-      case "24h": return a.change24h;
-      case "FDV": return a.fdv;
-      case "Vol 24h": return a.volume24h;
-      case "ROI 1M": return a.roi1m;
-      case "ROI 1Y": return a.roi1y;
-      default: return a.marketCap;
-    }
-  };
-
-  viewAssets.sort((a, b) => {
-    const av = getter(a) ?? -Infinity;
-    const bv = getter(b) ?? -Infinity;
-    return desc ? (bv - av) : (av - bv);
+function fetchJson(url){
+  return fetch(url, {cache:"no-store"}).then(r=>{
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return r.json();
   });
+}
+function num(v){ const n=Number(v); return isFinite(n)? n : null; }
 
-  // reset halaman jika perlu
-  page = 1;
+/* =============================
+   Filter/sort/paging
+============================= */
+function applyFilter(){
+  const q = (qInput.value||"").trim().toLowerCase();
+  let arr = RAW.slice();
+
+  if (watchOnlyBox.checked){
+    arr = arr.filter(a => watchlist.has(a.symbol));
+  }
+  if (q){
+    arr = arr.filter(a =>
+      (a.symbol||"").toLowerCase().includes(q) ||
+      (a.name||"").toLowerCase().includes(q) ||
+      (a.sector||"").toLowerCase().includes(q) ||
+      (Array.isArray(a.tags) ? a.tags.join(",") : "").toLowerCase().includes(q)
+    );
+  }
+  return arr;
+}
+function applySort(arr){
+  const key = sortKey;
+  const dir = sortDir === "desc" ? -1 : 1;
+  return arr.sort((a,b)=>{
+    const va = a[key]; const vb = b[key];
+    if (va==null && vb==null) return 0;
+    if (va==null) return 1;
+    if (vb==null) return -1;
+    if (va>vb) return 1*dir;
+    if (va<vb) return -1*dir;
+    return 0;
+  });
+}
+function totalPages(){ return Math.max(1, Math.ceil(VIEW.length / pageSize)); }
+function pageInfoText(){
+  const t = VIEW.length;
+  if (!t) return "0–0 of 0";
+  const s = (page-1)*pageSize + 1;
+  const e = Math.min(page*pageSize, t);
+  return `${s}–${e} of ${t}`;
+}
+function getSlice(){
+  const s = (page-1)*pageSize;
+  return VIEW.slice(s, s+pageSize);
 }
 
-function getSlice() {
-  const start = (page - 1) * pageSize;
-  return viewAssets.slice(start, start + pageSize);
+/* =============================
+   Render ALL
+============================= */
+function renderAll(){
+  VIEW = applySort(applyFilter());
+  page = Math.min(page, totalPages());
+  renderCrypto();
 }
 
-/* -------------------------
-   Render
-------------------------- */
-function renderEmpty(msg = "No results found.") {
-  cryptoBody.innerHTML = "";
-  cryptoEmpty.textContent = msg;
-  cryptoEmpty.removeAttribute("hidden");
-  pager.info.textContent = "0 of 0";
-}
+/* =============================
+   Render table (FINAL)
+============================= */
+function renderCrypto(){
+  cryptoTBody.innerHTML = "";
+  cryptoEmpty.classList.add("hidden");
 
-function renderPager() {
-  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
-  page = Math.min(page, totalPages);
-
-  pager.info.textContent = `${(viewAssets.length ? ( (page-1)*pageSize + 1 ) : 0)}–${Math.min(page*pageSize, viewAssets.length)} of ${viewAssets.length}`;
-  pager.first.disabled = page <= 1;
-  pager.prev.disabled  = page <= 1;
-  pager.next.disabled  = page >= totalPages;
-  pager.last.disabled  = page >= totalPages;
-}
-
-function renderCrypto() {
   const slice = getSlice();
-
-  if (!slice.length) {
-    renderEmpty(viewAssets.length ? "No items on this page." : "No results found.");
+  if (!slice.length){
+    cryptoEmpty.classList.remove("hidden");
+    document.getElementById("pageInfo").textContent = "0–0 of 0";
     return;
   }
-  cryptoEmpty.setAttribute("hidden", "");
+  document.getElementById("pageInfo").textContent = pageInfoText();
 
-  cryptoBody.innerHTML = "";
-  slice.forEach(a => {
+  slice.forEach(a=>{
     const tr = document.createElement("tr");
     tr.style.cursor = "pointer";
+    if (a.symbol === "XAN") tr.classList.add("highlight-xan");
 
-    // star (watchlist)
+    // star
     const tdStar = document.createElement("td");
     const star = document.createElement("button");
-    star.className = "star" + (watchlist.has(a.symbol) ? " active" : "");
-    star.type = "button";
-    star.title = "Watchlist";
-    star.addEventListener("click", (ev) => {
+    star.className = "star" + (watchlist.has(a.symbol) ? " active":"");
+    star.title = "Toggle watchlist";
+    star.addEventListener("click",(ev)=>{
       ev.stopPropagation();
-      if (watchlist.has(a.symbol)) watchlist.delete(a.symbol); else watchlist.add(a.symbol);
-      persistWatchlist();
-      renderCrypto();
+      if (watchlist.has(a.symbol)) watchlist.delete(a.symbol);
+      else watchlist.add(a.symbol);
+      renderAll();
     });
     tdStar.appendChild(star);
 
-    // symbol
-    const tdSymbol = document.createElement("td");
-    tdSymbol.textContent = a.symbol;
-
-    // name + logo
-    const tdName = document.createElement("td");
-    const wrap = document.createElement("div");
-    wrap.style.display = "flex";
-    wrap.style.alignItems = "center";
-    wrap.style.gap = "8px";
-
-    if (logoMap[a.symbol]) {
-      const img = document.createElement("img");
-      img.src = logoMap[a.symbol];
-      img.alt = a.symbol;
-      img.className = "token-logo";
-      wrap.appendChild(img);
+    // symbol (+badge)
+    const tdSym = document.createElement("td");
+    tdSym.textContent = a.symbol || "-";
+    if (a.badge){
+      const b = document.createElement("span");
+      b.className = "badge badge-small";
+      b.style.marginLeft = "8px";
+      b.textContent = a.badge;
+      tdSym.appendChild(b);
     }
+
+    // name (logo + text)
+    const tdName = document.createElement("td");
+    tdName.setAttribute("data-col","name");
+    const wrap = document.createElement("span");
+    wrap.className = "name-cell";
+    const img = document.createElement("img");
+    img.className = "coin-logo";
+    img.src = getLogoSrc(a);
+    img.alt = a.name || a.symbol || "";
+    img.onerror = ()=>{ img.style.visibility="hidden"; };
     const nm = document.createElement("span");
-    nm.textContent = a.name;
+    nm.textContent = a.name || a.symbol || "-";
+    wrap.appendChild(img);
     wrap.appendChild(nm);
     tdName.appendChild(wrap);
 
-    // numeric cols
-    const tdPrice = document.createElement("td");
-    tdPrice.className = "num";
-    tdPrice.textContent = fmt.usd(a.price);
+    // price
+    const tdPrice = tdNum(a.price!=null ? formatMoney(a.price) : "-");
 
-    const tdCh24 = document.createElement("td");
-    tdCh24.className = "num" + (a.change24h > 0 ? " up" : a.change24h < 0 ? " down" : "");
-    tdCh24.textContent = fmt.pct(a.change24h);
+    // 24h
+    const td24 = tdNum(a.change24h!=null ? `${a.change24h.toFixed(2)}%` : "-");
+    if (typeof a.change24h==="number"){
+      td24.classList.add(a.change24h>=0 ? "pos":"neg","pctClass");
+    }
 
-    const tdMcap = document.createElement("td");
-    tdMcap.className = "num";
-    tdMcap.textContent = fmt.num(a.marketCap);
+    // mcap
+    const tdM = tdNum(a.marketCap!=null ? formatAbbr(a.marketCap) : "-");
 
-    const tdFdv = document.createElement("td");
-    tdFdv.className = "num";
-    tdFdv.textContent = fmt.num(a.fdv);
+    // fdv
+    const tdF = tdNum(a.fdv!=null ? formatAbbr(a.fdv) : "-");
 
-    const tdVol = document.createElement("td");
-    tdVol.className = "num";
-    tdVol.textContent = fmt.num(a.volume24h);
+    // vol
+    const tdV = tdNum(a.volume24h!=null ? formatAbbr(a.volume24h) : "-");
 
     // sector
-    const tdSector = document.createElement("td");
-    tdSector.textContent = a.sector || "-";
-    tdSector.title = a.sector || "";
+    const tdSec = document.createElement("td");
+    tdSec.textContent = a.sector || "-";
+    tdSec.title = a.sector || "";
 
-    // ROI
-    const tdR1m = document.createElement("td");
-    tdR1m.className = "num " + (a.roi1m > 0 ? "up" : a.roi1m < 0 ? "down" : "");
-    tdR1m.textContent = a.roi1m != null ? fmt.pct(a.roi1m) : "-";
+    // roi1m
+    const tdR1m = tdNum(a.roi1m!=null ? `${a.roi1m.toFixed(2)}%` : "-");
+    if (typeof a.roi1m==="number"){
+      tdR1m.classList.add(a.roi1m>=0 ? "pos":"neg","pctClass");
+    }
 
-    const tdR1y = document.createElement("td");
-    tdR1y.className = "num " + (a.roi1y > 0 ? "up" : a.roi1y < 0 ? "down" : "");
-    tdR1y.textContent = a.roi1y != null ? fmt.pct(a.roi1y) : "-";
+    // roi1y
+    const tdR1y = tdNum(a.roi1y!=null ? `${a.roi1y.toFixed(2)}%` : "-");
+    if (typeof a.roi1y==="number"){
+      tdR1y.classList.add(a.roi1y>=0 ? "pos":"neg","pctClass");
+    }
 
     // tags
     const tdTags = document.createElement("td");
-    const t = (a.tags || []).join(", ");
-    tdTags.textContent = t || "-";
-    tdTags.title = t;
+    const tagsText = Array.isArray(a.tags) ? a.tags.join(", ") : (a.tags || "");
+    tdTags.textContent = tagsText || "-";
+    tdTags.title = tagsText;
 
-    tr.append(tdStar, tdSymbol, tdName, tdPrice, tdCh24, tdMcap, tdFdv, tdVol, tdSector, tdR1m, tdR1y, tdTags);
+    tr.append(tdStar, tdSym, tdName, tdPrice, td24, tdM, tdF, tdV, tdSec, tdR1m, tdR1y, tdTags);
 
-    // (optional) detail click
-    tr.addEventListener("click", () => {
-      // openAssetDetail(a) — kalau kamu sudah punya handler detail
-      // untuk demo, biarkan kosong.
-    });
+    // klik row -> detail (demo)
+    tr.addEventListener("click", ()=>openAssetDetail(a));
 
-    cryptoBody.appendChild(tr);
+    cryptoTBody.appendChild(tr);
   });
-
-  renderPager();
+}
+function tdNum(text){
+  const td = document.createElement("td");
+  td.className = "num";
+  td.textContent = text;
+  return td;
 }
 
-/* -------------------------
-   Events
-------------------------- */
-searchBox?.addEventListener("input", () => { applyFilters(); renderCrypto(); });
-sortSelect?.addEventListener("change", () => { applyFilters(); renderCrypto(); });
-filterWatchlist?.addEventListener("change", () => { applyFilters(); renderCrypto(); });
-
-pager.size?.addEventListener("change", () => {
-  pageSize = Number(pager.size.value || 10);
-  page = 1;
-  renderCrypto();
-});
-pager.first?.addEventListener("click", () => { page = 1; renderCrypto(); });
-pager.prev ?.addEventListener("click", () => { page = Math.max(1, page - 1); renderCrypto(); });
-pager.next ?.addEventListener("click", () => {
-  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
-  page = Math.min(totalPages, page + 1);
-  renderCrypto();
-});
-pager.last ?.addEventListener("click", () => {
-  const totalPages = Math.max(1, Math.ceil(viewAssets.length / pageSize));
-  page = totalPages; renderCrypto();
-});
-
-btnTopGainers?.addEventListener("click", () => {
-  btnTopGainers.dataset.active = btnTopGainers.dataset.active === "1" ? "0" : "1";
-  btnTopLosers.dataset.active = "0";
-  applyFilters(); renderCrypto();
-});
-btnTopLosers?.addEventListener("click", () => {
-  btnTopLosers.dataset.active = btnTopLosers.dataset.active === "1" ? "0" : "1";
-  btnTopGainers.dataset.active = "0";
-  applyFilters(); renderCrypto();
-});
-
-/* -------------------------
-   Boot
-------------------------- */
-async function loadData() {
-  // path data dummy (sudah kamu pakai sebelumnya)
-  const url = "assets/data/assets.json";
-  const res = await fetch(url);
-  if (!res.ok) throw new Error("Cannot load assets.json");
-  const rows = await res.json();
-
-  // normalisasi minimal field yang dipakai
-  allAssets = rows.map(r => ({
-    symbol: r.symbol,
-    name: r.name,
-    price: r.price,
-    change24h: r.change24h,
-    marketCap: r.marketCap,
-    fdv: r.fdv,
-    volume24h: r.volume24h,
-    sector: r.sector,
-    roi1m: r.roi1m,
-    roi1y: r.roi1y,
-    tags: r.tags || [],
-  }));
-
-  applyFilters();
-  renderCrypto();
+/* =============================
+   Detail panel (demo)
+============================= */
+function openAssetDetail(a){
+  // di versi demo ini cukup log; (kalau kamu punya panel detail, panggil di sini)
+  console.log("open detail:", a.symbol);
 }
 
-loadData().catch(err => {
-  console.error(err);
-  renderEmpty("Demo Error: assets/data/assets.json not found (cek path atau nama file).");
+/* =============================
+   Utils
+============================= */
+function formatMoney(v){
+  if (v == null || isNaN(v)) return "-";
+  const n = Math.abs(v);
+  if (n>=1e12) return `$${(v/1e12).toFixed(2)}T`;
+  if (n>=1e9)  return `$${(v/1e9).toFixed(2)}B`;
+  if (n>=1e6)  return `$${(v/1e6).toFixed(2)}M`;
+  if (n>=1e3)  return `$${(v/1e3).toFixed(2)}K`;
+  return `$${Number(v).toLocaleString()}`;
+}
+function formatAbbr(v){
+  if (v == null || isNaN(v)) return "-";
+  const n = Math.abs(v);
+  if (n>=1e12) return `${(v/1e12).toFixed(2)}T`;
+  if (n>=1e9)  return `${(v/1e9).toFixed(2)}B`;
+  if (n>=1e6)  return `${(v/1e6).toFixed(2)}M`;
+  if (n>=1e3)  return `${(v/1e3).toFixed(2)}K`;
+  return `${Number(v).toLocaleString()}`;
+}
+
+/* =============================
+   Swap & NFT demo hooks
+============================= */
+document.getElementById("btnProcess")?.addEventListener("click", ()=>{
+  alert("Swap intent processed (demo).");
+});
+document.getElementById("btnResetSwap")?.addEventListener("click", ()=>{
+  document.getElementById("swapIntent").value="";
+  document.getElementById("amt").value=100;
+  document.getElementById("fromToken").value="ETH";
+  document.getElementById("toToken").value="BTC";
+  document.getElementById("fromChain").value="Ethereum";
+  document.getElementById("toChain").value="Ethereum";
+  document.getElementById("maxFee").value="";
+  document.getElementById("deadline").value=30;
+});
+
+document.getElementById("btnStartNft")?.addEventListener("click", ()=>{
+  alert("NFT swap started (demo).");
+});
+document.getElementById("btnResetNft")?.addEventListener("click", ()=>{
+  document.getElementById("nftCollection").value="";
+  document.getElementById("nftId").value="";
+  document.getElementById("nftTarget").value="";
+  document.getElementById("nftFrom").value="Ethereum";
+  document.getElementById("nftTo").value="Polygon";
 });
