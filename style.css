@@ -132,3 +132,19 @@ table tbody td:nth-child(3) > div{
 .footer-pro .built{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--text) }
 .footer-pro .who{ font-family:'Orbitron',ui-sans-serif; font-weight:700; letter-spacing:.3px; color:var(--cyan) }
 .light .footer-pro .x-logo{ filter:invert(1) }
+
+/* --- Command Palette --- */
+.overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.5);
+  display:grid; place-items:center; z-index:50;
+}
+.palette{
+  width:min(760px,92vw); background:var(--surface-2); border:1px solid #2a2a30;
+  border-radius:16px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4)
+}
+.palette input{
+  width:100%; padding:12px 14px; border-radius:10px; border:1px solid #2a2a30;
+  background:var(--surface); color:var(--text); font-size:15px; outline:none
+}
+.palette .preview{margin-top:8px; color:#c9c9c9; font-size:13px}
+.palette .actions{margin-top:12px; display:flex; gap:8px; justify-content:flex-end}
